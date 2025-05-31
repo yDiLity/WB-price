@@ -67,10 +67,6 @@ class WBCompetitorService {
 
       console.log(`✅ Найдено ${competitors.length} реальных конкурентов`);
       return competitors;
-      // Например:
-      // const response = await ozonApiService.searchProducts({
-      //   query,
-      //   category,
       //   limit
       // });
 

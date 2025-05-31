@@ -86,7 +86,7 @@ class CompetitorSearchService {
       } catch (error) {
         console.error('Ошибка при поиске конкурентов:', error);
         // В случае ошибки возвращаем моковые данные
-        return this.getMockCompetitors(searchTerm, currentPrice, showOnlyWB);
+        return this.getMockCompetitors(searchTerm, currentPrice, false);
       }
     }
   }
