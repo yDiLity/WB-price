@@ -5,8 +5,11 @@ import LoginForm from './components/LoginForm'
 import RegisterForm from './components/RegisterForm'
 import ThemeToggle from './components/ThemeToggle'
 import ContentProtection from './components/common/ContentProtection'
-import { AuthProvider } from './context/AuthContext'
+import RoleBasedNavbar from './components/navigation/RoleBasedNavbar'
+import { AuthProvider, useAuth } from './context/AuthContext'
 import { ProductProvider } from './context/ProductContext'
+import { usePermissions } from './components/auth/PermissionGuard'
+import { NAVIGATION_MENU, filterMenuByPermissions, getMenuGroups } from './config/navigation'
 import { ProductProviderNew } from './context/ProductContextNew'
 import { OzonProductProvider } from './context/OzonProductContext'
 import { SimpleProductProvider } from './context/SimpleProductContext'
@@ -769,7 +772,7 @@ function App() {
                       disableForAuth: true
                     }}
                   />
-                  <Navbar />
+                  <RoleBasedNavbar />
                   <Box as="main" flex="1">
                     <Routes>
                       <Route path="/" element={<Home />} />

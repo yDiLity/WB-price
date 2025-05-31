@@ -97,7 +97,7 @@ class WBCompetitorService {
       console.log(`Searching competitors by SKU for product: ${product.sku}`);
 
       // Если API не настроен или useRealApi=false, используем моковые данные
-      if (!ozonApiService.isInitialized() || !useRealApi) {
+      if (!wbApiService.isInitialized() || !useRealApi) {
         console.log('Using mock data for competitors');
         return this.getMockCompetitors(product);
       }
@@ -258,4 +258,4 @@ class WBCompetitorService {
 }
 
 // Экспортируем синглтон
-export const ozonCompetitorService = new OzonCompetitorService();
+export const ozonCompetitorService = new WBCompetitorService();

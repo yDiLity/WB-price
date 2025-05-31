@@ -28,10 +28,10 @@ export interface UserSettings {
 }
 
 export enum UserRole {
-  ADMIN = 'admin',
-  SELLER = 'seller',
-  MANAGER = 'manager',
-  VIEWER = 'viewer'
+  ADMIN = 'admin',      // Администратор - полный доступ
+  SELLER = 'seller',    // Продавец - основные функции
+  MANAGER = 'manager',  // Менеджер - расширенные функции
+  VIEWER = 'viewer'     // Наблюдатель - только просмотр
 }
 
 export interface AuthState {
@@ -67,3 +67,91 @@ export interface AuthContextType {
   validateOzonApiCredentials: (credentials: OzonApiCredentials) => Promise<boolean>;
   clearError: () => void;
 }
+
+// Разрешения для разных ролей
+export const ROLE_PERMISSIONS = {
+  [UserRole.VIEWER]: [
+    'products.view',
+    'competitors.view',
+    'prices.view',
+    'reports.view'
+  ],
+  [UserRole.SELLER]: [
+    'products.view',
+    'products.create',
+    'products.edit',
+    'competitors.view',
+    'prices.view',
+    'prices.edit',
+    'reports.view',
+    'profile.edit'
+  ],
+  [UserRole.MANAGER]: [
+    'products.view',
+    'products.create',
+    'products.edit',
+    'products.moderate',
+    'competitors.view',
+    'competitors.manage',
+    'prices.view',
+    'prices.edit',
+    'prices.manage',
+    'reports.view',
+    'reports.create',
+    'users.view',
+    'profile.edit'
+  ],
+  [UserRole.ADMIN]: [
+    'products.*',
+    'competitors.*',
+    'prices.*',
+    'reports.*',
+    'users.*',
+    'system.*',
+    'monitoring.*',
+    'security.*',
+    'integration.*',
+    'analytics.*',
+    'profile.*'
+  ]
+};
+
+// Проверка разрешений
+export const hasPermission = (user: User | null, permission: string): boolean => {
+  if (!user) return false;
+
+  const userPermissions = ROLE_PERMISSIONS[user.role] || [];
+
+  // Проверяем точное совпадение
+  if (userPermissions.includes(permission)) return true;
+
+  // Проверяем wildcard разрешения (например, products.*)
+  const wildcardPermissions = userPermissions.filter(p => p.endsWith('.*'));
+  for (const wildcardPerm of wildcardPermissions) {
+    const prefix = wildcardPerm.replace('.*', '');
+    if (permission.startsWith(prefix)) return true;
+  }
+
+  return false;
+};
+
+// Проверка роли
+export const hasRole = (user: User | null, role: UserRole): boolean => {
+  if (!user) return false;
+  return user.role === role;
+};
+
+// Проверка на админа
+export const isAdmin = (user: User | null): boolean => {
+  return hasRole(user, UserRole.ADMIN);
+};
+
+// Проверка на менеджера или выше
+export const isManager = (user: User | null): boolean => {
+  return hasRole(user, UserRole.MANAGER) || isAdmin(user);
+};
+
+// Проверка на продавца или выше
+export const isSeller = (user: User | null): boolean => {
+  return hasRole(user, UserRole.SELLER) || isManager(user);
+};

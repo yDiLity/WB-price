@@ -27,7 +27,7 @@ import {
   StatNumber,
   StatHelpText
 } from '@chakra-ui/react';
-import { FaSpider, FaShield, FaRocket, FaChartLine } from 'react-icons/fa';
+import { FaSpider, FaShieldAlt, FaRocket, FaChartLine } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
 import WBParsingTest from '../components/parsing/WBParsingTest';
 import { wbParsingService } from '../services/wbParsingService';
@@ -63,7 +63,7 @@ export default function WBParsingPage() {
             Система безопасного парсинга данных с Wildberries с защитой от блокировок
             и автоматическим извлечением информации о товарах и конкурентах
           </Text>
-          
+
           <HStack spacing={4} mt={4}>
             <Badge colorScheme="green" size="lg" p={2}>
               ✅ Защита от блокировок
@@ -102,7 +102,7 @@ export default function WBParsingPage() {
                 <Stat className="purple-stat-border" p={4} borderRadius="md">
                   <StatLabel>Последний запрос</StatLabel>
                   <StatNumber color="purple.500">
-                    {parsingStats.lastRequestTime 
+                    {parsingStats.lastRequestTime
                       ? new Date(parsingStats.lastRequestTime).toLocaleTimeString()
                       : 'Нет данных'
                     }
@@ -178,7 +178,7 @@ export default function WBParsingPage() {
             </Tab>
             <Tab>
               <HStack spacing={2}>
-                <Icon as={FaShield} />
+                <Icon as={FaShieldAlt} />
                 <Text>Настройки защиты</Text>
               </HStack>
             </Tab>

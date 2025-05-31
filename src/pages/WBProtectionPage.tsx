@@ -18,7 +18,7 @@ import {
   CardBody,
   CardHeader
 } from '@chakra-ui/react';
-import { FaShield, FaRocket, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
+import { FaShieldAlt, FaRocket, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
 import WBProtectionDashboard from '../components/security/WBProtectionDashboard';
 
 export default function WBProtectionPage() {
@@ -30,7 +30,7 @@ export default function WBProtectionPage() {
       <VStack spacing={8} align="stretch">
         {/* Заголовок */}
         <VStack spacing={4} textAlign="center" className="purple-section-border" p={6}>
-          <Icon as={FaShield} boxSize={12} color="purple.500" />
+          <Icon as={FaShieldAlt} boxSize={12} color="purple.500" />
           <Heading as="h1" size="xl" color="purple.600">
             🛡️ Защита от блокировок Wildberries
           </Heading>
@@ -38,7 +38,7 @@ export default function WBProtectionPage() {
             Система 100% защиты с 7 уровнями безопасности для работы с Wildberries API
             без риска блокировок
           </Text>
-          
+
           <HStack spacing={4} mt={4}>
             <Badge colorScheme="green" size="lg" p={2}>
               ✅ 99.9% защита от блокировок

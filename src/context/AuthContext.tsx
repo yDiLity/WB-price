@@ -22,15 +22,21 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Временная заглушка для пользователя (до интеграции с API)
+// ТЕСТИРУЕМ РАЗНЫЕ РОЛИ - меняйте роль здесь для тестирования
 const mockUser: User = {
   id: '1',
-  email: 'user@example.com',
-  name: 'Тестовый пользователь',
-  role: UserRole.ADMIN,
+  username: 'admin_demo',
+  email: 'admin@example.com',
+  role: UserRole.ADMIN, // Меняйте на SELLER, MANAGER, VIEWER для тестирования
+  firstName: 'Админ',
+  lastName: 'Демо',
+  createdAt: new Date(),
+  updatedAt: new Date(),
   settings: {
+    theme: 'system',
+    notifications: true,
     emailNotifications: true,
-    telegramNotifications: false,
-    autoApplyPriceChanges: false,
+    language: 'ru',
     defaultPricingStrategy: PricingStrategyType.AGGRESSIVE
   },
   ozonApiCredentials: {
