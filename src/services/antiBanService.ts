@@ -17,6 +17,14 @@ interface ProxyInfo {
   lastUsed: Date;
   responseTime: number;
   successRate: number;
+  region: string; // Регион прокси
+  country: string; // Страна
+  city: string; // Город
+  asn: string; // Autonomous System Number
+  provider: string; // Провайдер
+  score: number; // Автоматическая оценка 0-100
+  totalRequests: number; // Общее количество запросов
+  successfulRequests: number; // Успешные запросы
 }
 
 interface Fingerprint {
@@ -81,7 +89,7 @@ class AntiBanService {
   private initializeProxyPool(): void {
     // Загружаем прокси из конфигурации или используем моковые
     const savedProxies = localStorage.getItem('wb-proxy-pool');
-    
+
     if (savedProxies) {
       try {
         this.proxyPool = JSON.parse(savedProxies);
@@ -415,25 +423,69 @@ class AntiBanService {
   }
 
   /**
-   * 🎲 Генерация тестовых прокси
+   * 🎲 Генерация тестовых прокси с геораспределением
    */
   private generateMockProxies(): ProxyInfo[] {
     const mockProxies: ProxyInfo[] = [];
-    
-    for (let i = 0; i < 10; i++) {
+
+    const regions = [
+      { region: 'Moscow', country: 'Russia', city: 'Moscow', asn: 'AS8359', provider: 'MTS' },
+      { region: 'SPB', country: 'Russia', city: 'Saint Petersburg', asn: 'AS3216', provider: 'Rostelecom' },
+      { region: 'Siberia', country: 'Russia', city: 'Novosibirsk', asn: 'AS12389', provider: 'Beeline' },
+      { region: 'Ural', country: 'Russia', city: 'Yekaterinburg', asn: 'AS31133', provider: 'MegaFon' },
+      { region: 'South', country: 'Russia', city: 'Krasnodar', asn: 'AS8402', provider: 'Corbina' },
+      { region: 'Far East', country: 'Russia', city: 'Vladivostok', asn: 'AS25159', provider: 'DVFU' },
+      { region: 'Center', country: 'Russia', city: 'Voronezh', asn: 'AS20485', provider: 'TTK' },
+      { region: 'Volga', country: 'Russia', city: 'Kazan', asn: 'AS8641', provider: 'Naukanet' }
+    ];
+
+    for (let i = 0; i < 20; i++) {
+      const regionData = regions[i % regions.length];
+      const baseIP = this.generateRegionalIP(regionData.region);
+
       mockProxies.push({
-        ip: `192.168.1.${100 + i}`,
+        ip: baseIP,
         port: 8080 + i,
         type: ['residential', 'mobile', 'datacenter'][i % 3] as any,
         reputation: 70 + Math.random() * 30,
         banCount: 0,
         lastUsed: new Date(Date.now() - Math.random() * 86400000),
         responseTime: 100 + Math.random() * 500,
-        successRate: 85 + Math.random() * 15
+        successRate: 85 + Math.random() * 15,
+        region: regionData.region,
+        country: regionData.country,
+        city: regionData.city,
+        asn: regionData.asn,
+        provider: regionData.provider,
+        score: 70 + Math.random() * 30,
+        totalRequests: Math.floor(Math.random() * 1000),
+        successfulRequests: Math.floor(Math.random() * 800)
       });
     }
 
     return mockProxies;
+  }
+
+  /**
+   * 🌍 Генерация IP для региона
+   */
+  private generateRegionalIP(region: string): string {
+    const ipRanges: Record<string, string> = {
+      'Moscow': '95.108',
+      'SPB': '78.155',
+      'Siberia': '109.195',
+      'Ural': '213.87',
+      'South': '46.39',
+      'Far East': '62.117',
+      'Center': '188.170',
+      'Volga': '85.143'
+    };
+
+    const baseRange = ipRanges[region] || '192.168';
+    const third = Math.floor(Math.random() * 255);
+    const fourth = Math.floor(Math.random() * 255);
+
+    return `${baseRange}.${third}.${fourth}`;
   }
 
   /**
@@ -447,7 +499,7 @@ class AntiBanService {
     isRecovering: boolean;
     config: typeof this.config;
   } {
-    const bannedProxies = this.proxyPool.filter(p => 
+    const bannedProxies = this.proxyPool.filter(p =>
       p.bannedUntil && p.bannedUntil > new Date()
     ).length;
 

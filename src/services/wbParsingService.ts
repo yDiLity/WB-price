@@ -6,6 +6,8 @@
 import { wbAntiBlockService } from './wbAntiBlockService';
 import { antiBanService } from './antiBanService';
 import { notificationService } from './notificationService';
+import { banAnalyticsService } from './banAnalyticsService';
+import { fingerprintService } from './fingerprintService';
 
 interface WBProduct {
   id: string;
@@ -196,17 +198,19 @@ class WBParsingService {
       // Используем систему защиты от блокировок
       const secureOptions = await wbAntiBlockService.makeSecureRequest(url, options);
 
-      // Добавляем специфичные для WB заголовки
+      // Генерируем продвинутый fingerprint
+      const browserHeaders = fingerprintService.generateBrowserHeaders(url);
+
+      // Добавляем специфичные для WB заголовки с fingerprint
       const headers = {
         ...options.headers,
+        ...browserHeaders,
         'Accept': 'application/json, text/plain, */*',
-        'Accept-Language': 'ru-RU,ru;q=0.9,en;q=0.8',
         'Cache-Control': 'no-cache',
         'Pragma': 'no-cache',
         'Sec-Fetch-Dest': 'empty',
         'Sec-Fetch-Mode': 'cors',
-        'Sec-Fetch-Site': 'same-site',
-        'X-Requested-With': 'XMLHttpRequest'
+        'Sec-Fetch-Site': 'same-site'
       };
 
       // Выполняем запрос
@@ -223,6 +227,20 @@ class WBParsingService {
       if (banDetection.isBanned) {
         console.warn(`🚨 Обнаружен бан: ${banDetection.banType} (${banDetection.confidence}%)`);
 
+        // 🧠 ЗАПИСЫВАЕМ СОБЫТИЕ БАНА В АНАЛИТИКУ
+        banAnalyticsService.recordBanEvent({
+          url,
+          method: options.method || 'GET',
+          statusCode: response.status,
+          ip: 'current_proxy_ip', // TODO: получать реальный IP
+          userAgent: headers.userAgent || '',
+          headers: Object.fromEntries(response.headers.entries()),
+          responseTime,
+          banReason: banDetection.banType,
+          confidence: banDetection.confidence,
+          fingerprint: JSON.stringify(fingerprintService.getCurrentProfile())
+        });
+
         // Автоматическое восстановление
         const recovered = await antiBanService.autoRecover(banDetection, url);
 
@@ -234,6 +252,18 @@ class WBParsingService {
         } else {
           throw new Error(`Ban detected: ${banDetection.banType} (${banDetection.confidence}%)`);
         }
+      } else {
+        // 📊 ЗАПИСЫВАЕМ УСПЕШНЫЙ ЗАПРОС
+        banAnalyticsService.recordBanEvent({
+          url,
+          method: options.method || 'GET',
+          statusCode: response.status,
+          ip: 'current_proxy_ip',
+          userAgent: headers.userAgent || '',
+          responseTime,
+          banReason: 'unknown',
+          confidence: 0
+        });
       }
 
       // Логируем запрос для мониторинга

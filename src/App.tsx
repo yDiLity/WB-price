@@ -25,6 +25,7 @@ import SecurityNotification from './components/security/SecurityNotification'
 import MLAnalyticsPage from './pages/MLAnalyticsPage'
 import WBProtectionPage from './pages/WBProtectionPage'
 import WBParsingPage from './pages/WBParsingPage'
+import BanAnalyticsPage from './pages/BanAnalyticsPage'
 import ConnectedUsersPage from './pages/ConnectedUsersPage'
 import MonitoringPage from './pages/MonitoringPage'
 import AIAnalysisPage from './pages/AIAnalysisPage'
@@ -334,6 +335,7 @@ const Navbar = () => {
                   { label: '🤖 ML-Аналитика', to: '/ml-analytics' },
                   { label: '🛡️ Защита WB', to: '/wb-protection' },
                   { label: '🕷️ Парсинг WB', to: '/wb-parsing' },
+                  { label: '🧠 Аналитика банов', to: '/ban-analytics' },
                   { label: '🔍 Декодер артикулов', to: '/code-decoder' },
                   { label: 'Интеграция', to: '/integration-guide' },
                   { label: '⚙️ Настройки безопасности', to: '/security-settings' }
@@ -783,6 +785,7 @@ function App() {
                       <Route path="/ml-analytics" element={<MLAnalyticsPage />} />
                       <Route path="/wb-protection" element={<WBProtectionPage />} />
                       <Route path="/wb-parsing" element={<WBParsingPage />} />
+                      <Route path="/ban-analytics" element={<BanAnalyticsPage />} />
                       <Route path="/users" element={<ConnectedUsersPage />} />
                       <Route path="/monitoring" element={<MonitoringPage />} />
                       <Route path="/metrics" element={<MetricsPage />} />
