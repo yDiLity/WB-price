@@ -4,28 +4,28 @@ export interface AutomationSettings {
   id: string;
   userId: string;
   productId: string;
-  
-  // Автоматическое изменение цен на Ozon
-  ozonAutoUpdate: boolean; // Главная галочка - изменять цены на Ozon автоматически
+
+  // Автоматическое изменение цен на Wildberries
+  wbAutoUpdate: boolean; // Главная галочка - изменять цены на Wildberries автоматически
   requireConfirmation: boolean; // Требовать подтверждение (по умолчанию false)
-  
+
   // 24/7 мониторинг (всегда включен)
   monitoring24x7: boolean; // Всегда true
   monitoringInterval: number; // Интервал в минутах (по умолчанию 5)
-  
+
   // Настройки безопасности
   maxPriceChangePercent: number; // Максимальное изменение цены за раз (%)
   maxDailyChanges: number; // Максимальное количество изменений в день
   minTimeBetweenChanges: number; // Минимальное время между изменениями (минуты)
-  
+
   // API настройки
   ozonApiKey?: string; // API ключ Ozon (если есть)
   ozonClientId?: string; // Client ID Ozon (если есть)
-  
+
   // Уведомления
   notifyOnPriceChange: boolean; // Уведомлять об изменениях цен
   notifyOnErrors: boolean; // Уведомлять об ошибках
-  
+
   createdAt: string;
   updatedAt: string;
 }
@@ -34,22 +34,22 @@ export interface PriceChangeAttempt {
   id: string;
   productId: string;
   automationSettingsId: string;
-  
+
   oldPrice: number;
   newPrice: number;
   changePercent: number;
-  
+
   status: 'pending' | 'success' | 'failed' | 'blocked';
   reason: string; // Причина изменения или ошибки
-  
+
   // Данные о попытке изменения на Ozon
   ozonRequestId?: string;
   ozonResponse?: any;
   ozonError?: string;
-  
+
   attemptedAt: string;
   completedAt?: string;
-  
+
   // Метаданные
   triggeredBy: 'competitor_price' | 'strategy_rule' | 'manual' | 'schedule';
   competitorId?: string;
@@ -64,7 +64,7 @@ export interface MonitoringStatus {
   checksToday: number;
   errorsToday: number;
   successfulChangesToday: number;
-  
+
   // Статистика
   totalChecks: number;
   totalChanges: number;
@@ -77,7 +77,7 @@ export interface AutomationRule {
   name: string;
   description: string;
   isActive: boolean;
-  
+
   // Условия срабатывания
   conditions: {
     competitorPriceChange?: {
@@ -94,7 +94,7 @@ export interface AutomationRule {
       competitionLevel: 'low' | 'medium' | 'high';
     };
   };
-  
+
   // Действия
   actions: {
     priceAdjustment: {
@@ -108,12 +108,12 @@ export interface AutomationRule {
       webhook?: string;
     };
   };
-  
+
   createdAt: string;
   updatedAt: string;
 }
 
-export interface OzonApiStatus {
+export interface WBApiStatus {
   isConnected: boolean;
   hasValidKeys: boolean;
   lastSuccessfulCall?: string;
@@ -124,7 +124,7 @@ export interface OzonApiStatus {
 
 // Константы
 export const DEFAULT_AUTOMATION_SETTINGS: Partial<AutomationSettings> = {
-  ozonAutoUpdate: false, // По умолчанию выключено для безопасности
+  wbAutoUpdate: false, // По умолчанию выключено для безопасности
   requireConfirmation: true, // По умолчанию требуем подтверждение
   monitoring24x7: true, // Всегда включен
   monitoringInterval: 5, // Каждые 5 минут

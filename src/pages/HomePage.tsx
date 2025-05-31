@@ -111,7 +111,7 @@ const HomePage = () => {
           {/* Левая часть - текст */}
           <VStack align="flex-start" spacing={6} flex="1" maxW={{ base: '100%', lg: '50%' }}>
             <Badge colorScheme="blue" px={4} py={2} borderRadius="full" fontSize="sm" className="purple-border">
-              🚀 Ozon Price Optimizer Pro
+              🚀 WB Price Optimizer Pro
             </Badge>
 
             <Heading
@@ -130,7 +130,7 @@ const HomePage = () => {
                 backgroundClip: 'text'
               }}
             >
-              Автоматизированная система ценообразования для Ozon
+              Автоматизированная система ценообразования для Wildberries
             </Heading>
 
             <Text fontSize="xl" color={textColor} lineHeight="tall">

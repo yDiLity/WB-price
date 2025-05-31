@@ -1,9 +1,9 @@
 /**
- * Сервис для поиска и работы с конкурентами на Ozon
+ * Сервис для поиска и работы с конкурентами на Wildberries
  */
 
 import { Product, CompetitorProduct } from '../types/product';
-import { ozonApiService } from './ozonApi';
+import { wbApiService } from './wbApi';
 
 interface SearchCompetitorsOptions {
   query?: string;
@@ -12,9 +12,9 @@ interface SearchCompetitorsOptions {
   useRealApi?: boolean;
 }
 
-class OzonCompetitorService {
+class WBCompetitorService {
   /**
-   * Поиск конкурентов на Ozon по названию товара
+   * Поиск конкурентов на Wildberries по названию товара
    * @param product Товар, для которого ищем конкурентов
    * @param options Опции поиска
    * @returns Список найденных конкурентов
@@ -34,19 +34,19 @@ class OzonCompetitorService {
       console.log(`Searching competitors for product: ${product.title}`);
 
       // Если API не настроен или useRealApi=false, используем моковые данные
-      if (!ozonApiService.isInitialized() || !useRealApi) {
+      if (!wbApiService.isInitialized() || !useRealApi) {
         console.log('Using mock data for competitors');
         return this.getMockCompetitors(product);
       }
 
-      // В реальном приложении здесь будет запрос к API Ozon
+      // В реальном приложении здесь будет запрос к API Wildberries
       // Например:
       // const response = await ozonApiService.searchProducts({
       //   query,
       //   category,
       //   limit
       // });
-      
+
       // Пока возвращаем моковые данные, но в будущем здесь будет реальный API-запрос
       return this.getMockCompetitors(product);
     } catch (error) {
@@ -85,7 +85,7 @@ class OzonCompetitorService {
       //   sku: product.sku,
       //   limit
       // });
-      
+
       // Пока возвращаем моковые данные, но в будущем здесь будет реальный API-запрос
       return this.getMockCompetitors(product);
     } catch (error) {

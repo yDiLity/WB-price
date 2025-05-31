@@ -73,12 +73,12 @@ class CompetitorSearchService {
 
         // Преобразуем результаты в формат CompetitorProduct
         return data.products.map((product: any) => ({
-          id: `ozon-${product.id}`,
+          id: `wb-${product.id}`,
           competitorId: product.seller.id,
-          competitorName: product.seller.name || 'Ozon',
+          competitorName: product.seller.name || 'Wildberries',
           productTitle: product.title,
           price: product.price,
-          url: product.url || `https://ozon.ru/product/${product.id}`,
+          url: product.url || `https://wildberries.ru/catalog/${product.id}/detail.aspx`,
           lastUpdated: new Date(),
           isActive: true,
           imageUrl: product.image_url
@@ -86,7 +86,7 @@ class CompetitorSearchService {
       } catch (error) {
         console.error('Ошибка при поиске конкурентов:', error);
         // В случае ошибки возвращаем моковые данные
-        return this.getMockCompetitors(searchTerm, currentPrice, showOnlyOzon);
+        return this.getMockCompetitors(searchTerm, currentPrice, showOnlyWB);
       }
     }
   }

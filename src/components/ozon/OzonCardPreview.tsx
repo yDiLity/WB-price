@@ -362,7 +362,7 @@ const OzonCardPreview: React.FC<OzonCardPreviewProps> = ({ cardData }) => {
               <VStack align="stretch" spacing={4}>
                 <Heading size="md">Вопросы и ответы</Heading>
                 <Text color={textColor}>
-                  Вопросы и ответы будут доступны после публикации товара на Ozon
+                  Вопросы и ответы будут доступны после публикации товара на Wildberries
                 </Text>
               </VStack>
             </TabPanel>
@@ -373,7 +373,7 @@ const OzonCardPreview: React.FC<OzonCardPreviewProps> = ({ cardData }) => {
       <Alert status="info" mt={4}>
         <AlertIcon />
         <Text>
-          Это предварительный просмотр карточки товара. Реальный вид может отличаться после публикации на Ozon.
+          Это предварительный просмотр карточки товара. Реальный вид может отличаться после публикации на Wildberries.
         </Text>
       </Alert>
     </Box>

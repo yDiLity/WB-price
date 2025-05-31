@@ -158,8 +158,8 @@ export default function OzonProductsPage() {
   const borderColor = useColorModeValue('gray.200', 'gray.600');
   const statBg = useColorModeValue('blue.50', 'blue.900');
 
-  // Проверяем, настроен ли API Ozon
-  const isOzonApiConfigured = user?.ozonApiCredentials?.isValid || false;
+  // Проверяем, настроен ли API Wildberries
+  const isWBApiConfigured = user?.wbApiCredentials?.isValid || false;
 
   // Обработчик поиска
   const handleSearch = () => {
