@@ -4,6 +4,7 @@
 
 import { Product, CompetitorProduct } from '../types/product';
 import { wbApiService } from './wbApi';
+import { wbParsingService } from './wbParsingService';
 
 interface SearchCompetitorsOptions {
   query?: string;
@@ -39,7 +40,33 @@ class WBCompetitorService {
         return this.getMockCompetitors(product);
       }
 
-      // В реальном приложении здесь будет запрос к API Wildberries
+      // Используем реальный парсинг Wildberries
+      console.log('🕷️ Поиск конкурентов через парсинг WB...');
+      const wbProducts = await wbParsingService.getCompetitorPrices(
+        options.query || product.name,
+        options.limit || 20
+      );
+
+      // Конвертируем в формат CompetitorProduct
+      const competitors: CompetitorProduct[] = wbProducts.map(wbProduct => ({
+        id: `wb-${wbProduct.id}`,
+        competitorId: wbProduct.sellerId,
+        competitorName: wbProduct.seller,
+        productTitle: wbProduct.name,
+        price: wbProduct.price,
+        url: wbProduct.url,
+        lastUpdated: wbProduct.lastUpdated,
+        isActive: wbProduct.inStock,
+        imageUrl: wbProduct.images[0] || '',
+        rating: wbProduct.rating,
+        reviewCount: wbProduct.reviewCount,
+        position: wbProduct.position || 0,
+        category: wbProduct.category,
+        brand: wbProduct.brand
+      }));
+
+      console.log(`✅ Найдено ${competitors.length} реальных конкурентов`);
+      return competitors;
       // Например:
       // const response = await ozonApiService.searchProducts({
       //   query,
