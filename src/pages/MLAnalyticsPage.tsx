@@ -22,6 +22,7 @@ import {
 import { FaBrain, FaRobot, FaChartLine, FaCog } from 'react-icons/fa';
 import { Link as RouterLink } from 'react-router-dom';
 import AnomalyDashboard from '../components/ml/AnomalyDashboard';
+import AIRecommendations from '../components/ai/AIRecommendations';
 
 export default function MLAnalyticsPage() {
   const textColor = useColorModeValue('gray.600', 'gray.300');
@@ -36,10 +37,10 @@ export default function MLAnalyticsPage() {
             🤖 ML-Аналитика и ИИ
           </Heading>
           <Text fontSize="lg" color={textColor} maxW="2xl">
-            Машинное обучение для автоматического выявления аномалий, 
+            Машинное обучение для автоматического выявления аномалий,
             прогнозирования трендов и оптимизации ценовых стратегий
           </Text>
-          
+
           <HStack spacing={4} mt={4}>
             <Badge colorScheme="green" size="lg" p={2}>
               ✅ ML-модели активны
@@ -90,6 +91,12 @@ export default function MLAnalyticsPage() {
           <TabList className="purple-tab-border">
             <Tab>
               <HStack spacing={2}>
+                <Icon as={FaBrain} />
+                <Text>AI-Рекомендации</Text>
+              </HStack>
+            </Tab>
+            <Tab>
+              <HStack spacing={2}>
                 <Icon as={FaRobot} />
                 <Text>Детекция аномалий</Text>
               </HStack>
@@ -109,6 +116,50 @@ export default function MLAnalyticsPage() {
           </TabList>
 
           <TabPanels>
+            {/* AI-Рекомендации */}
+            <TabPanel p={0} pt={6}>
+              <AIRecommendations
+                productId="demo-product-123"
+                currentPrice={2990}
+                competitors={[
+                  {
+                    id: '1',
+                    name: 'iPhone 15 Pro Max',
+                    price: 3200,
+                    rating: 4.8,
+                    reviewCount: 1250,
+                    position: 1,
+                    category: 'Смартфоны',
+                    brand: 'Apple',
+                    features: ['128GB', 'Titanium', 'Pro Camera'],
+                    images: [],
+                    description: 'Флагманский смартфон Apple',
+                    priceHistory: [
+                      { date: '2024-01-01', price: 3300 },
+                      { date: '2024-01-15', price: 3200 }
+                    ]
+                  },
+                  {
+                    id: '2',
+                    name: 'Samsung Galaxy S24 Ultra',
+                    price: 2850,
+                    rating: 4.7,
+                    reviewCount: 890,
+                    position: 2,
+                    category: 'Смартфоны',
+                    brand: 'Samsung',
+                    features: ['256GB', 'S Pen', 'AI Camera'],
+                    images: [],
+                    description: 'Премиальный Android смартфон',
+                    priceHistory: [
+                      { date: '2024-01-01', price: 2900 },
+                      { date: '2024-01-15', price: 2850 }
+                    ]
+                  }
+                ]}
+              />
+            </TabPanel>
+
             {/* Детекция аномалий */}
             <TabPanel p={0} pt={6}>
               <AnomalyDashboard />
