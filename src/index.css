@@ -1,0 +1,282 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 🎨 Фиолетовые рамки для элементов интерфейса */
+.purple-border {
+  border: 2px solid #7C3AED !important;
+  border-radius: 8px !important;
+  box-shadow: 0 0 0 1px rgba(124, 58, 237, 0.1) !important;
+  transition: all 0.3s ease !important;
+}
+
+.purple-border:hover {
+  border-color: #6D28D9 !important;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Рамки для карточек */
+.purple-card-border {
+  border: 2px solid #8B5CF6 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 6px rgba(124, 58, 237, 0.1) !important;
+  transition: all 0.3s ease !important;
+}
+
+.purple-card-border:hover {
+  border-color: #7C3AED !important;
+  box-shadow: 0 8px 25px rgba(124, 58, 237, 0.2) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* Рамки для кнопок */
+.purple-button-border {
+  border: 2px solid #7C3AED !important;
+  border-radius: 6px !important;
+  transition: all 0.2s ease !important;
+}
+
+.purple-button-border:hover {
+  border-color: #6D28D9 !important;
+  background-color: rgba(124, 58, 237, 0.05) !important;
+}
+
+/* Рамки для навигации */
+.purple-nav-border {
+  border: 2px solid #8B5CF6 !important;
+  border-radius: 10px !important;
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.02), rgba(139, 92, 246, 0.02)) !important;
+}
+
+/* Рамки для модальных окон */
+.purple-modal-border {
+  border: 3px solid #7C3AED !important;
+  border-radius: 16px !important;
+  box-shadow: 0 20px 25px rgba(124, 58, 237, 0.15) !important;
+}
+
+/* Рамки для таблиц */
+.purple-table-border {
+  border: 2px solid #8B5CF6 !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+}
+
+.purple-table-border th,
+.purple-table-border td {
+  border-right: 1px solid #C4B5FD !important;
+  border-bottom: 1px solid #C4B5FD !important;
+}
+
+.purple-table-border th:last-child,
+.purple-table-border td:last-child {
+  border-right: none !important;
+}
+
+.purple-table-border tr:last-child td {
+  border-bottom: none !important;
+}
+
+/* Рамки для форм */
+.purple-form-border {
+  border: 2px solid #8B5CF6 !important;
+  border-radius: 8px !important;
+  transition: all 0.3s ease !important;
+}
+
+.purple-form-border:focus {
+  border-color: #7C3AED !important;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2) !important;
+  outline: none !important;
+}
+
+/* Рамки для контейнеров */
+.purple-container-border {
+  border: 2px solid #8B5CF6 !important;
+  border-radius: 12px !important;
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.01), rgba(139, 92, 246, 0.01)) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+/* Рамки для секций */
+.purple-section-border {
+  border: 2px solid #7C3AED !important;
+  border-radius: 16px !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.purple-section-border::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.02), rgba(139, 92, 246, 0.02));
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Рамки для алертов */
+.purple-alert-border {
+  border: 2px solid #8B5CF6 !important;
+  border-radius: 10px !important;
+  border-left: 6px solid #7C3AED !important;
+}
+
+/* Рамки для статистики */
+.purple-stat-border {
+  border: 2px solid #8B5CF6 !important;
+  border-radius: 12px !important;
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.03), rgba(139, 92, 246, 0.03)) !important;
+  position: relative !important;
+}
+
+/* Рамки для хедера */
+.purple-header-border {
+  border-bottom: 3px solid #8B5CF6 !important;
+  background: linear-gradient(90deg, rgba(124, 58, 237, 0.02), rgba(139, 92, 246, 0.02)) !important;
+}
+
+/* Анимированные рамки */
+.purple-animated-border {
+  border: 2px solid transparent !important;
+  border-radius: 12px !important;
+  background: linear-gradient(white, white) padding-box,
+              linear-gradient(135deg, #7C3AED, #8B5CF6, #6D28D9) border-box !important;
+  animation: borderGlow 3s ease-in-out infinite alternate !important;
+}
+
+@keyframes borderGlow {
+  0% {
+    box-shadow: 0 0 5px rgba(124, 58, 237, 0.3);
+  }
+  100% {
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.6);
+  }
+}
+
+/* Градиентные рамки */
+.purple-gradient-border {
+  border: 3px solid transparent !important;
+  border-radius: 16px !important;
+  background: linear-gradient(white, white) padding-box,
+              linear-gradient(45deg, #7C3AED, #8B5CF6, #6D28D9, #5B21B6) border-box !important;
+}
+
+/* Рамки для дашборда */
+.purple-dashboard-border {
+  border: 2px solid #8B5CF6 !important;
+  border-radius: 14px !important;
+  background: rgba(124, 58, 237, 0.02) !important;
+  backdrop-filter: blur(5px) !important;
+}
+
+/* Утилиты для отступов с рамками */
+.purple-border-spacing {
+  margin: 8px !important;
+  padding: 16px !important;
+}
+
+.purple-border-spacing-lg {
+  margin: 16px !important;
+  padding: 24px !important;
+}
+
+.purple-border-spacing-sm {
+  margin: 4px !important;
+  padding: 8px !important;
+}
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+@layer base {
+  /* Убираем принудительный фон - пусть Chakra UI управляет цветами */
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded font-medium transition-colors;
+  }
+
+  .btn-primary {
+    @apply bg-blue-600 text-white hover:bg-blue-700;
+  }
+
+  .btn-secondary {
+    @apply bg-gray-200 text-gray-800 hover:bg-gray-300;
+  }
+
+  .card {
+    @apply bg-white rounded-lg shadow p-4;
+  }
+
+  .input {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500;
+  }
+}
+
+/* 🌈 СУПЕР РАЗНОЦВЕТНЫЕ АНИМАЦИИ! */
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes rainbow {
+  0% { background-position: 0% 50%; }
+  25% { background-position: 100% 50%; }
+  50% { background-position: 100% 100%; }
+  75% { background-position: 0% 100%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 8px rgba(255, 107, 53, 0.6));
+  }
+  50% {
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 16px rgba(255, 107, 53, 0.8));
+  }
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 8px rgba(255, 107, 53, 0.6));
+  }
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-10px); }
+  60% { transform: translateY(-5px); }
+}
+
+@keyframes glow {
+  0% { box-shadow: 0 0 5px rgba(255, 107, 53, 0.3); }
+  50% {
+    box-shadow: 0 0 20px rgba(255, 107, 53, 0.6),
+                0 0 30px rgba(6, 255, 165, 0.4);
+  }
+  100% { box-shadow: 0 0 5px rgba(255, 107, 53, 0.3); }
+}
+
+@keyframes colorShift {
+  0% { filter: hue-rotate(0deg); }
+  25% { filter: hue-rotate(90deg); }
+  50% { filter: hue-rotate(180deg); }
+  75% { filter: hue-rotate(270deg); }
+  100% { filter: hue-rotate(360deg); }
+}

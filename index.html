@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WB Price Optimizer Pro</title>
+
+    <!-- Защита от индексации и скрапинга -->
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="googlebot" content="noindex, nofollow" />
+    <meta name="bingbot" content="noindex, nofollow" />
+    <meta name="yandex" content="none" />
+    <meta name="description" content="WB Price Optimizer Pro - инструмент для оптимизации цен на Wildberries" />
+
+    <!-- Защита от фрейминга будет настроена на сервере -->
+
+    <!-- Google Custom Search Engine Script -->
+    <script async src="https://cse.google.com/cse.js?cx=647a52278bc524568"></script>
+
+    <!-- CHAKRA UI COLOR MODE SCRIPT - АГРЕССИВНО ПРЕДОТВРАЩАЕТ МИГАНИЕ -->
+    <script>
+      (function() {
+        try {
+          var colorMode = localStorage.getItem('chakra-ui-color-mode');
+          var isDark = colorMode === 'dark';
+
+          // Устанавливаем атрибуты для Chakra UI
+          if (isDark) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            document.documentElement.classList.add('chakra-ui-dark');
+            document.documentElement.style.setProperty('--chakra-colors-chakra-body-bg', '#1A202C');
+            document.documentElement.style.setProperty('--chakra-colors-chakra-body-text', '#FFFFFF');
+          } else {
+            document.documentElement.setAttribute('data-theme', 'light');
+            document.documentElement.classList.add('chakra-ui-light');
+            document.documentElement.style.setProperty('--chakra-colors-chakra-body-bg', '#FFFFFF');
+            document.documentElement.style.setProperty('--chakra-colors-chakra-body-text', '#1A202C');
+          }
+
+          // Принудительно устанавливаем стили body
+          var style = document.createElement('style');
+          style.innerHTML = isDark ?
+            'html, body, #root { background-color: #1A202C !important; color: #FFFFFF !important; }' :
+            'html, body, #root { background-color: #FFFFFF !important; color: #1A202C !important; }';
+          document.head.appendChild(style);
+
+        } catch (e) {
+          console.log('Color mode script error:', e);
+        }
+      })();
+    </script>
+
+    <!-- АГРЕССИВНЫЕ СТИЛИ ДЛЯ ПРЕДОТВРАЩЕНИЯ МИГАНИЯ -->
+    <style>
+      /* Базовые стили */
+      html, body, #root {
+        margin: 0;
+        padding: 0;
+        transition: background-color 0.2s, color 0.2s;
+      }
+
+      /* АГРЕССИВНЫЕ стили для темной темы */
+      .chakra-ui-dark,
+      .chakra-ui-dark *,
+      [data-theme="dark"],
+      [data-theme="dark"] * {
+        background-color: #1A202C !important;
+        color: #FFFFFF !important;
+      }
+
+      /* АГРЕССИВНЫЕ стили для светлой темы */
+      .chakra-ui-light,
+      .chakra-ui-light *,
+      [data-theme="light"],
+      [data-theme="light"] * {
+        background-color: #FFFFFF !important;
+        color: #1A202C !important;
+      }
+
+      /* Переопределяем все возможные селекторы */
+      html.chakra-ui-dark,
+      html.chakra-ui-dark body,
+      html.chakra-ui-dark #root,
+      html[data-theme="dark"],
+      html[data-theme="dark"] body,
+      html[data-theme="dark"] #root {
+        background-color: #1A202C !important;
+        color: #FFFFFF !important;
+      }
+
+      html.chakra-ui-light,
+      html.chakra-ui-light body,
+      html.chakra-ui-light #root,
+      html[data-theme="light"],
+      html[data-theme="light"] body,
+      html[data-theme="light"] #root {
+        background-color: #FFFFFF !important;
+        color: #1A202C !important;
+      }
+    </style>
+
+    <!-- Скрипт для защиты от копирования -->
+    <script>
+      // Базовая защита от копирования
+      document.addEventListener('contextmenu', function(e) {
+        // Запрещаем контекстное меню (правый клик)
+        e.preventDefault();
+      });
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
