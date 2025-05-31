@@ -4,6 +4,8 @@
  */
 
 import { wbAntiBlockService } from './wbAntiBlockService';
+import { antiBanService } from './antiBanService';
+import { notificationService } from './notificationService';
 
 interface WBProduct {
   id: string;
@@ -60,7 +62,7 @@ class WBParsingService {
    */
   async searchProducts(params: WBSearchParams): Promise<WBParsingResult> {
     const startTime = Date.now();
-    
+
     try {
       console.log('🔍 Начинаем поиск товаров на WB:', params.query);
 
@@ -82,10 +84,10 @@ class WBParsingService {
       }
 
       const data = await response.json();
-      
+
       // Парсим результаты
       const products = await this.parseSearchResults(data, params.query);
-      
+
       const result: WBParsingResult = {
         products,
         totalFound: data.metadata?.total || products.length,
@@ -100,7 +102,7 @@ class WBParsingService {
 
     } catch (error) {
       console.error('❌ Ошибка поиска товаров:', error);
-      
+
       return {
         products: [],
         totalFound: 0,
@@ -124,7 +126,7 @@ class WBParsingService {
 
       // Запрос к API карточек товаров
       const url = `${this.baseUrls.card}?appType=1&curr=rub&dest=-1257786&regions=80,64,83,4,38,115,30,33,70,69,68,86,75,40,1,66,48,110,31,22,71,114&spp=27&nm=${productId}`;
-      
+
       const response = await this.makeSecureRequest(url, {
         method: 'GET',
         headers: this.getCardHeaders()
@@ -135,7 +137,7 @@ class WBParsingService {
       }
 
       const data = await response.json();
-      
+
       if (!data.data?.products?.[0]) {
         console.warn('⚠️ Товар не найден:', productId);
         return null;
@@ -143,7 +145,7 @@ class WBParsingService {
 
       const product = await this.parseProductCard(data.data.products[0]);
       console.log('✅ Получены детали товара:', product.name);
-      
+
       return product;
 
     } catch (error) {
@@ -188,32 +190,68 @@ class WBParsingService {
    * 🛡️ Безопасный запрос с защитой от блокировок
    */
   private async makeSecureRequest(url: string, options: RequestInit = {}): Promise<Response> {
-    // Используем систему защиты от блокировок
-    const secureOptions = await wbAntiBlockService.makeSecureRequest(url, options);
-    
-    // Добавляем специфичные для WB заголовки
-    const headers = {
-      ...options.headers,
-      'Accept': 'application/json, text/plain, */*',
-      'Accept-Language': 'ru-RU,ru;q=0.9,en;q=0.8',
-      'Cache-Control': 'no-cache',
-      'Pragma': 'no-cache',
-      'Sec-Fetch-Dest': 'empty',
-      'Sec-Fetch-Mode': 'cors',
-      'Sec-Fetch-Site': 'same-site',
-      'X-Requested-With': 'XMLHttpRequest'
-    };
+    const startTime = Date.now();
 
-    // Выполняем запрос
-    const response = await fetch(url, {
-      ...options,
-      headers
-    });
+    try {
+      // Используем систему защиты от блокировок
+      const secureOptions = await wbAntiBlockService.makeSecureRequest(url, options);
 
-    // Логируем запрос для мониторинга
-    this.logRequest(url, response.status, response.ok);
+      // Добавляем специфичные для WB заголовки
+      const headers = {
+        ...options.headers,
+        'Accept': 'application/json, text/plain, */*',
+        'Accept-Language': 'ru-RU,ru;q=0.9,en;q=0.8',
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache',
+        'Sec-Fetch-Dest': 'empty',
+        'Sec-Fetch-Mode': 'cors',
+        'Sec-Fetch-Site': 'same-site',
+        'X-Requested-With': 'XMLHttpRequest'
+      };
 
-    return response;
+      // Выполняем запрос
+      const response = await fetch(url, {
+        ...options,
+        headers
+      });
+
+      const responseTime = Date.now() - startTime;
+
+      // 🚨 ПРОВЕРКА НА БАН
+      const banDetection = antiBanService.detectBan(response, responseTime);
+
+      if (banDetection.isBanned) {
+        console.warn(`🚨 Обнаружен бан: ${banDetection.banType} (${banDetection.confidence}%)`);
+
+        // Автоматическое восстановление
+        const recovered = await antiBanService.autoRecover(banDetection, url);
+
+        if (recovered) {
+          // Повторяем запрос после восстановления
+          console.log('🔄 Повторный запрос после восстановления...');
+          await this.sleep(5000); // Дополнительная задержка
+          return this.makeSecureRequest(url, options);
+        } else {
+          throw new Error(`Ban detected: ${banDetection.banType} (${banDetection.confidence}%)`);
+        }
+      }
+
+      // Логируем запрос для мониторинга
+      this.logRequest(url, response.status, response.ok);
+
+      return response;
+
+    } catch (error) {
+      console.error(`❌ Ошибка безопасного запроса:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * 😴 Вспомогательный метод для задержки
+   */
+  private sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   /**
@@ -222,10 +260,10 @@ class WBParsingService {
   private async ensureSafeRequest(): Promise<void> {
     const now = Date.now();
     const timeSinceLastRequest = now - this.lastRequestTime;
-    
+
     // Минимальная задержка между запросами (5 секунд)
     const minDelay = 5000;
-    
+
     if (timeSinceLastRequest < minDelay) {
       const waitTime = minDelay - timeSinceLastRequest;
       console.log(`⏱️ Ожидание ${waitTime}ms для безопасности...`);
@@ -247,20 +285,20 @@ class WBParsingService {
    */
   private buildSearchParams(params: WBSearchParams): string {
     const searchParams = new URLSearchParams();
-    
+
     searchParams.append('query', params.query);
     searchParams.append('resultset', 'catalog');
     searchParams.append('limit', (params.limit || 20).toString());
     searchParams.append('offset', ((params.page || 1) - 1) * (params.limit || 20)).toString());
-    
+
     if (params.category) {
       searchParams.append('cat', params.category);
     }
-    
+
     if (params.priceMin) {
       searchParams.append('priceU', (params.priceMin * 100).toString());
     }
-    
+
     if (params.priceMax) {
       searchParams.append('priceU', (params.priceMax * 100).toString());
     }
@@ -321,7 +359,7 @@ class WBParsingService {
    */
   private async parseSearchResults(data: any, query: string): Promise<WBProduct[]> {
     const products: WBProduct[] = [];
-    
+
     if (!data.data?.products) {
       console.warn('⚠️ Нет товаров в результатах поиска');
       return products;
@@ -408,7 +446,7 @@ class WBParsingService {
    */
   private extractImages(item: any): string[] {
     const images: string[] = [];
-    
+
     if (item.pics && Array.isArray(item.pics)) {
       item.pics.forEach((pic: number) => {
         const vol = Math.floor(pic / 100000);
@@ -427,7 +465,7 @@ class WBParsingService {
   private logRequest(url: string, status: number, success: boolean): void {
     const timestamp = new Date().toISOString();
     console.log(`📊 [${timestamp}] ${success ? '✅' : '❌'} ${status} ${url}`);
-    
+
     // Здесь можно добавить отправку в систему мониторинга
     if (!success) {
       console.warn(`⚠️ Неуспешный запрос: ${status} ${url}`);

@@ -1,13 +1,13 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const axios = require('axios');
+const { OpenAI } = require('openai');
 const path = require('path');
+const nodemailer = require('nodemailer');
 
 // Импортируем модули
 const logisticsRouter = require('./server/logistics');
 const competitorsRouter = require('./server/routes/competitors');
-const aiRouter = require('./server/routes/ai');
 
 // Создаем экземпляр Express
 const app = express();
@@ -19,24 +19,16 @@ app.use(cors());
 // Парсинг JSON-запросов
 app.use(bodyParser.json());
 
-// Настройка статических файлов
-// Приоритет 1: Файлы из папки public
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Приоритет 2: Файлы из папки uploads
+// Статические файлы для загрузок
 app.use('/uploads', express.static(path.join(__dirname, 'server/uploads')));
 
-// Приоритет 3: Корневая директория для index.html и других файлов
-app.use(express.static(path.join(__dirname)));
-
-// Маршрут для корневого пути
-app.get('/', (req, res) => {
-  console.log('Serving index.html from root path');
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-// Инициализация Gemini API
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyCXaRYYE6nTIUFF_R6fi368Ede90LC3Y2E';
+// Инициализация OpenAI, если есть API-ключ
+let openai = null;
+if (process.env.OPENAI_API_KEY) {
+  openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY
+  });
+}
 
 // Функция для имитации ответа ИИ
 function simulateAIResponse(product, competitors) {
@@ -134,52 +126,33 @@ ${competitors.map(c => `- ${c.competitorName}: ${c.productName}, Цена: ${c.c
 5. Минимально допустимая цена
 `;
 
-    // Используем Gemini API для анализа
-    try {
-      console.log('Using Gemini API for analysis');
+    // Если настроен OpenAI API, используем его
+    if (openai) {
+      console.log('Using OpenAI API for analysis');
 
-      const response = await axios.post(
-        'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
-        {
-          contents: [
-            {
-              parts: [
-                {
-                  text: "Ты - ИИ-аналитик для системы оптимизации цен на Ozon. Твоя задача - анализировать товары и давать рекомендации по ценообразованию."
-                },
-                {
-                  text: prompt
-                }
-              ]
-            }
-          ],
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 2048
+      const response = await openai.chat.completions.create({
+        model: "gpt-3.5-turbo",
+        messages: [
+          {
+            role: "system",
+            content: "Ты - ИИ-аналитик для системы оптимизации цен на Ozon. Твоя задача - анализировать товары и давать рекомендации по ценообразованию."
+          },
+          {
+            role: "user",
+            content: prompt
           }
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'x-goog-api-key': GEMINI_API_KEY
-          }
-        }
-      );
-
-      if (response.data.error) {
-        throw new Error(response.data.error.message || 'Ошибка при анализе товара');
-      }
-
-      const content = response.data.candidates[0].content.parts[0].text;
+        ],
+        temperature: 0.7,
+        max_tokens: 1000
+      });
 
       return {
         success: true,
-        analysis: content
+        analysis: response.choices[0].message.content
       };
-    } catch (error) {
-      console.error('Error using Gemini API:', error);
-      // Если произошла ошибка, используем заглушку
-      console.log('Falling back to simulated AI response');
+    } else {
+      // Если OpenAI API не настроен, используем заглушку
+      console.log('Using simulated AI response');
       return {
         success: true,
         analysis: simulateAIResponse(product, competitors)
@@ -254,21 +227,79 @@ app.post('/api/batch-analyze', async (req, res) => {
   }
 });
 
+// 📧 API-эндпоинт для отправки email уведомлений о банах
+app.post('/api/send-email-alert', async (req, res) => {
+  try {
+    const { subject, message, alert } = req.body;
+
+    if (!subject || !message) {
+      return res.status(400).json({
+        success: false,
+        error: 'Отсутствуют обязательные поля'
+      });
+    }
+
+    // Настройка SMTP транспорта
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER || 'your.email@gmail.com',
+        pass: process.env.EMAIL_PASS || 'your_app_password'
+      }
+    });
+
+    // Формируем HTML версию сообщения
+    const htmlMessage = message
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\n/g, '<br>');
+
+    // Отправляем email
+    const mailOptions = {
+      from: `"WB Парсинг Алерты" <${process.env.EMAIL_USER || 'your.email@gmail.com'}>`,
+      to: process.env.EMAIL_TO || 'alerts@yourcompany.com',
+      subject: subject,
+      text: message,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
+            <h2 style="color: #dc3545; margin: 0 0 20px 0;">${subject}</h2>
+            <div style="background: white; padding: 15px; border-radius: 4px; border-left: 4px solid #dc3545;">
+              ${htmlMessage}
+            </div>
+            <div style="margin-top: 20px; font-size: 12px; color: #6c757d;">
+              <p>Это автоматическое уведомление от системы мониторинга WB Парсинг</p>
+              <p>Время отправки: ${new Date().toLocaleString('ru-RU')}</p>
+            </div>
+          </div>
+        </div>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    console.log('📧 Email уведомление отправлено:', subject);
+
+    res.json({
+      success: true,
+      message: 'Email уведомление отправлено'
+    });
+
+  } catch (error) {
+    console.error('❌ Ошибка отправки email:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Ошибка отправки email уведомления'
+    });
+  }
+});
+
 // Подключаем модули
 app.use('/api/logistics', logisticsRouter);
 app.use('/api/competitors', competitorsRouter);
-app.use('/api/ai', aiRouter);
-
-// Обработчик для всех остальных путей
-app.use('*', (req, res) => {
-  console.log(`Serving index.html for path: ${req.originalUrl}`);
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
 
 // Запуск сервера
-app.listen(port, '0.0.0.0', () => {
-  console.log(`Server running at http://0.0.0.0:${port}`);
-  console.log(`Server also accessible at http://localhost:${port}`);
-  console.log(`Gemini API configured with key: ${GEMINI_API_KEY ? GEMINI_API_KEY.substring(0, 10) + '...' : 'not configured'}`);
+app.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}`);
+  console.log(`OpenAI API ${openai ? 'configured' : 'not configured'}`);
   console.log(`Logistics module initialized`);
 });
