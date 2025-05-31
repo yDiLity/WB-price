@@ -28,7 +28,7 @@ import {
   useToast
 } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
-import { FaBrain, FaLightbulb, FaTarget, FaChartLine, FaRocket } from 'react-icons/fa';
+import { FaBrain, FaLightbulb, FaBullseye, FaChartLine, FaRocket } from 'react-icons/fa';
 import { aiCompetitorAnalysis } from '../../services/aiCompetitorAnalysis';
 
 interface AIRecommendationsProps {
@@ -37,10 +37,10 @@ interface AIRecommendationsProps {
   competitors: any[];
 }
 
-export default function AIRecommendations({ 
-  productId, 
-  currentPrice, 
-  competitors 
+export default function AIRecommendations({
+  productId,
+  currentPrice,
+  competitors
 }: AIRecommendationsProps) {
   const [analysis, setAnalysis] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -81,10 +81,10 @@ export default function AIRecommendations({
 
     try {
       setIsApplying(true);
-      
+
       // Здесь будет API вызов для изменения цены
       await new Promise(resolve => setTimeout(resolve, 2000)); // Имитация
-      
+
       toast({
         title: '✅ Цена обновлена',
         description: `Новая цена: ${analysis.pricingRecommendation.recommendedPrice} руб.`,
@@ -117,7 +117,7 @@ export default function AIRecommendations({
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'pricing': return FaTarget;
+      case 'pricing': return FaBullseye;
       case 'positioning': return FaChartLine;
       case 'marketing': return FaRocket;
       case 'product': return FaLightbulb;
@@ -188,8 +188,8 @@ export default function AIRecommendations({
                   {pricingRecommendation.recommendedPrice} ₽
                 </StatNumber>
                 <StatHelpText>
-                  <StatArrow 
-                    type={pricingRecommendation.recommendedPrice > currentPrice ? 'increase' : 'decrease'} 
+                  <StatArrow
+                    type={pricingRecommendation.recommendedPrice > currentPrice ? 'increase' : 'decrease'}
                   />
                   {((pricingRecommendation.recommendedPrice - currentPrice) / currentPrice * 100).toFixed(1)}%
                 </StatHelpText>
@@ -202,8 +202,8 @@ export default function AIRecommendations({
               </Stat>
             </SimpleGrid>
 
-            <Alert 
-              status={pricingRecommendation.riskLevel === 'low' ? 'success' : 
+            <Alert
+              status={pricingRecommendation.riskLevel === 'low' ? 'success' :
                      pricingRecommendation.riskLevel === 'medium' ? 'warning' : 'error'}
               className="purple-alert-border"
             >
@@ -219,7 +219,7 @@ export default function AIRecommendations({
             <HStack spacing={4}>
               <Button
                 colorScheme="green"
-                leftIcon={<Icon as={FaTarget} />}
+                leftIcon={<Icon as={FaBullseye} />}
                 onClick={applyRecommendedPrice}
                 isLoading={isApplying}
                 loadingText="Применяем..."
@@ -227,7 +227,7 @@ export default function AIRecommendations({
               >
                 Применить рекомендуемую цену
               </Button>
-              
+
               <Badge colorScheme={getPriorityColor(pricingRecommendation.riskLevel)} size="lg" p={2}>
                 Риск: {pricingRecommendation.riskLevel}
               </Badge>
@@ -312,7 +312,7 @@ export default function AIRecommendations({
             {insights.map((insight: any, index: number) => (
               <Alert
                 key={index}
-                status={insight.priority === 'critical' ? 'error' : 
+                status={insight.priority === 'critical' ? 'error' :
                        insight.priority === 'high' ? 'warning' : 'info'}
                 variant="left-accent"
                 className="purple-alert-border"
@@ -337,7 +337,7 @@ export default function AIRecommendations({
                       </Tooltip>
                     </HStack>
                   </HStack>
-                  
+
                   <AlertDescription fontSize="sm" mb={3}>
                     {insight.description}
                   </AlertDescription>
@@ -373,7 +373,7 @@ export default function AIRecommendations({
                       {alt.price} ₽
                     </Badge>
                   </HStack>
-                  
+
                   <Box>
                     <Text fontSize="sm" fontWeight="bold" color="green.600" mb={1}>
                       ✅ Преимущества:

@@ -67,7 +67,7 @@ export default function WBParsingTest() {
       };
 
       const result = await wbParsingService.searchProducts(searchParams);
-      
+
       if (result.success) {
         setResults(result.products);
         setSearchStats({
@@ -104,10 +104,10 @@ export default function WBParsingTest() {
 
   const handleGetDetails = async (productId: string) => {
     setIsLoadingDetails(true);
-    
+
     try {
       const product = await wbParsingService.getProductDetails(productId);
-      
+
       if (product) {
         setSelectedProduct(product);
         toast({
@@ -239,9 +239,9 @@ export default function WBParsingTest() {
                 <Text fontSize="sm" color="gray.600">Загружено</Text>
               </VStack>
             </SimpleGrid>
-          </VStack>
-        </CardBody>
-      </Card>
+          </CardBody>
+        </Card>
+      )}
 
       {/* Результаты поиска */}
       {results.length > 0 && (
@@ -362,7 +362,7 @@ export default function WBParsingTest() {
                     borderRadius="md"
                   />
                 )}
-                
+
                 {selectedProduct.images.length > 1 && (
                   <HStack spacing={2} overflowX="auto" width="100%">
                     {selectedProduct.images.slice(1, 5).map((image, index) => (
@@ -384,7 +384,7 @@ export default function WBParsingTest() {
               {/* Информация */}
               <VStack spacing={4} align="stretch">
                 <Heading size="md">{selectedProduct.name}</Heading>
-                
+
                 <HStack justify="space-between">
                   <VStack align="start" spacing={1}>
                     <Text fontSize="2xl" fontWeight="bold" color="green.500">

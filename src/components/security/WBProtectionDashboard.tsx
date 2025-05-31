@@ -26,7 +26,7 @@ import {
   Divider
 } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
-import { FaShield, FaRobot, FaGlobe, FaExclamationTriangle, FaCheckCircle } from 'react-icons/fa';
+import { FaShieldAlt, FaRobot, FaGlobe, FaExclamationTriangle, FaCheckCircle } from 'react-icons/fa';
 import { wbAntiBlockService } from '../../services/wbAntiBlockService';
 
 export default function WBProtectionDashboard() {
@@ -38,7 +38,7 @@ export default function WBProtectionDashboard() {
 
   useEffect(() => {
     loadProtectionStats();
-    
+
     // Обновляем статистику каждые 30 секунд
     const interval = setInterval(loadProtectionStats, 30000);
     return () => clearInterval(interval);
@@ -57,11 +57,11 @@ export default function WBProtectionDashboard() {
 
   const getProtectionLevel = () => {
     if (!protectionStats) return { level: 'unknown', color: 'gray', text: 'Неизвестно' };
-    
+
     const { healthyProxies, totalProxies, avgSuccessRate } = protectionStats;
     const healthyRatio = healthyProxies / totalProxies;
     const successRate = parseFloat(avgSuccessRate);
-    
+
     if (healthyRatio > 0.8 && successRate > 95) {
       return { level: 'excellent', color: 'green', text: 'Отличная защита' };
     } else if (healthyRatio > 0.6 && successRate > 90) {
@@ -80,7 +80,7 @@ export default function WBProtectionDashboard() {
       <Card className="purple-card-border" bg={cardBg}>
         <CardBody>
           <VStack spacing={4}>
-            <Icon as={FaShield} boxSize={12} color="purple.500" />
+            <Icon as={FaShieldAlt} boxSize={12} color="purple.500" />
             <Text>🛡️ Загрузка статистики защиты...</Text>
             <Progress size="lg" isIndeterminate colorScheme="purple" width="100%" />
           </VStack>
@@ -95,7 +95,7 @@ export default function WBProtectionDashboard() {
       <Card className="purple-card-border" bg={cardBg}>
         <CardHeader>
           <HStack spacing={3}>
-            <Icon as={FaShield} color="purple.500" boxSize={6} />
+            <Icon as={FaShieldAlt} color="purple.500" boxSize={6} />
             <Heading size="lg" color="purple.600">
               🛡️ Защита от блокировок Wildberries
             </Heading>
@@ -243,7 +243,7 @@ export default function WBProtectionDashboard() {
             {/* Уровень 7 */}
             <HStack justify="space-between" p={3} className="purple-container-border" borderRadius="md">
               <HStack spacing={3}>
-                <Icon as={protectionStats?.emergencyMode ? FaExclamationTriangle : FaShield} 
+                <Icon as={protectionStats?.emergencyMode ? FaExclamationTriangle : FaShieldAlt}
                      color={protectionStats?.emergencyMode ? "red.500" : "green.500"} />
                 <VStack align="start" spacing={0}>
                   <Text fontWeight="bold">7️⃣ Красная кнопка</Text>

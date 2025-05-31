@@ -319,7 +319,7 @@ class WBParsingService {
     searchParams.append('query', params.query);
     searchParams.append('resultset', 'catalog');
     searchParams.append('limit', (params.limit || 20).toString());
-    searchParams.append('offset', ((params.page || 1) - 1) * (params.limit || 20)).toString());
+    searchParams.append('offset', (((params.page || 1) - 1) * (params.limit || 20)).toString());
 
     if (params.category) {
       searchParams.append('cat', params.category);
