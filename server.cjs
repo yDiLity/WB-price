@@ -37,6 +37,20 @@ class WBAntibanService {
     this.emergencyMode = false;
     this.cache = new Map(); // Кеш для запросов
     this.cacheExpiry = 5 * 60 * 1000; // 5 минут
+
+    // 🆕 Новые функции для улучшенного обхода блокировок
+    this.blockedProducts = new Map(); // База проблемных товаров
+    this.fallbackSources = [
+      'card_api',
+      'catalog_api',
+      'web_parsing',
+      'category_parsing'
+    ];
+    this.currentSourceIndex = 0;
+    this.telegramBotToken = process.env.TELEGRAM_BOT_TOKEN;
+    this.telegramChatId = process.env.TELEGRAM_CHAT_ID;
+    this.recoveryAttempts = 0;
+    this.maxRecoveryAttempts = 3;
   }
 
   // Генерация случайной задержки между запросами
@@ -334,7 +348,104 @@ class WBAntibanService {
     }, 30 * 60 * 1000);
   }
 
-  // 📊 Статистика
+  // 🚫 Управление проблемными товарами
+  markProductAsBlocked(productId, reason = 'Блокировка API') {
+    const blockInfo = {
+      productId,
+      reason,
+      blockedAt: Date.now(),
+      attempts: 1,
+      nextRetryAt: Date.now() + (30 * 60 * 1000) // Повтор через 30 минут
+    };
+
+    if (this.blockedProducts.has(productId)) {
+      const existing = this.blockedProducts.get(productId);
+      existing.attempts++;
+      existing.nextRetryAt = Date.now() + (existing.attempts * 30 * 60 * 1000); // Увеличиваем интервал
+      existing.reason = reason;
+    } else {
+      this.blockedProducts.set(productId, blockInfo);
+    }
+
+    console.log(`🚫 Товар ${productId} помечен как проблемный: ${reason}`);
+  }
+
+  isProductBlocked(productId) {
+    const blockInfo = this.blockedProducts.get(productId);
+    if (!blockInfo) return false;
+
+    // Проверяем, не пора ли повторить попытку
+    if (Date.now() > blockInfo.nextRetryAt) {
+      console.log(`🔄 Время повторной попытки для товара ${productId}`);
+      return false;
+    }
+
+    return true;
+  }
+
+  getBlockedProductInfo(productId) {
+    return this.blockedProducts.get(productId);
+  }
+
+  // 📱 Telegram уведомления
+  async sendTelegramNotification(message) {
+    if (!this.telegramBotToken || !this.telegramChatId) {
+      console.log('⚠️ Telegram не настроен, пропускаем уведомление');
+      return false;
+    }
+
+    try {
+      const url = `https://api.telegram.org/bot${this.telegramBotToken}/sendMessage`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: this.telegramChatId,
+          text: message,
+          parse_mode: 'HTML'
+        })
+      });
+
+      if (response.ok) {
+        console.log('📱 Telegram уведомление отправлено');
+        return true;
+      } else {
+        console.log('❌ Ошибка отправки Telegram уведомления:', response.status);
+        return false;
+      }
+    } catch (error) {
+      console.error('❌ Ошибка Telegram API:', error.message);
+      return false;
+    }
+  }
+
+  // 🔄 Автоматическое восстановление
+  async attemptRecovery() {
+    if (this.recoveryAttempts >= this.maxRecoveryAttempts) {
+      console.log('🚨 Достигнут лимит попыток восстановления');
+      return false;
+    }
+
+    this.recoveryAttempts++;
+    console.log(`🔄 Попытка восстановления #${this.recoveryAttempts}`);
+
+    // Сбрасываем счетчики
+    this.banDetectionCount = Math.max(0, this.banDetectionCount - 1);
+
+    // Увеличиваем задержки
+    await this.addDelay();
+
+    // Уведомляем о попытке восстановления
+    await this.sendTelegramNotification(
+      `🔄 <b>Попытка восстановления #${this.recoveryAttempts}</b>\n` +
+      `🕐 Время: ${new Date().toLocaleString('ru-RU')}\n` +
+      `📊 Банов обнаружено: ${this.banDetectionCount}`
+    );
+
+    return true;
+  }
+
+  // 📊 Расширенная статистика
   getStats() {
     const activeProxies = this.proxyList.filter(p => p.isActive).length;
     const avgSuccessRate = this.proxyList.length > 0
@@ -350,7 +461,10 @@ class WBAntibanService {
       ).length,
       emergencyMode: this.emergencyMode,
       banDetectionCount: this.banDetectionCount,
-      cacheSize: this.cache.size
+      cacheSize: this.cache.size,
+      blockedProducts: this.blockedProducts.size,
+      recoveryAttempts: this.recoveryAttempts,
+      telegramConfigured: !!(this.telegramBotToken && this.telegramChatId)
     };
   }
 }
@@ -653,6 +767,49 @@ app.get('/api/wb/product/:id', async (req, res) => {
     const productId = req.params.id;
     console.log('🛡️ ЗАЩИЩЕННЫЙ запрос товара WB по ID:', productId);
 
+    // Проверяем, не заблокирован ли товар
+    if (antibanService.isProductBlocked(productId)) {
+      const blockInfo = antibanService.getBlockedProductInfo(productId);
+      const nextRetryTime = new Date(blockInfo.nextRetryAt).toLocaleString('ru-RU');
+
+      console.log(`🚫 Товар ${productId} временно заблокирован до ${nextRetryTime}`);
+
+      return res.json({
+        id: parseInt(productId),
+        name: `Товар ${productId}`,
+        brand: 'Временно недоступен',
+        price: 0,
+        originalPrice: 0,
+        discount: 0,
+        rating: 0,
+        supplierRating: 0,
+        feedbacks: 0,
+        volume: 0,
+        pics: 0,
+        video: null,
+        supplier: 'Недоступно',
+        supplierId: null,
+        category: null,
+        categoryId: null,
+        root: null,
+        kindId: null,
+        colors: [],
+        sizes: [],
+        promoTextCard: '',
+        promoTextCat: '',
+        source: 'BLOCKED_PRODUCT',
+        lastUpdated: new Date().toISOString(),
+        parseMethod: 'blocked',
+        note: `Товар временно заблокирован. Причина: ${blockInfo.reason}. Следующая попытка: ${nextRetryTime}`,
+        isBlocked: true,
+        blockInfo: {
+          reason: blockInfo.reason,
+          attempts: blockInfo.attempts,
+          nextRetryAt: nextRetryTime
+        }
+      });
+    }
+
     // Проверяем кеш
     const cacheKey = `product_${productId}`;
     const cachedData = antibanService.getCachedData(cacheKey);
@@ -847,6 +1004,21 @@ app.get('/api/wb/product/:id', async (req, res) => {
     const wasBlocked = antibanService.banDetectionCount > 0 || antibanService.emergencyMode;
 
     if (wasBlocked) {
+      // Помечаем товар как проблемный
+      antibanService.markProductAsBlocked(productId, 'Блокировка при парсинге');
+
+      // Отправляем Telegram уведомление
+      await antibanService.sendTelegramNotification(
+        `🚫 <b>Товар заблокирован</b>\n` +
+        `📦 Артикул: ${productId}\n` +
+        `🕐 Время: ${new Date().toLocaleString('ru-RU')}\n` +
+        `📊 Банов обнаружено: ${antibanService.banDetectionCount}\n` +
+        `🚨 Экстренный режим: ${antibanService.emergencyMode ? 'АКТИВЕН' : 'Отключен'}`
+      );
+
+      // Пытаемся восстановиться
+      await antibanService.attemptRecovery();
+
       // Если были блокировки, создаем fallback данные
       console.log('🔄 Обнаружены блокировки, создаем fallback данные...');
 
@@ -1565,6 +1737,45 @@ app.post('/api/wb/bulk-auto-pricing', async (req, res) => {
     console.error('🚫 Ошибка массового автоматического ценообразования:', error);
     res.status(500).json({ error: 'Ошибка массового обновления цен' });
   }
+});
+
+// 🚫 Управление проблемными товарами
+app.get('/api/wb/blocked-products', (req, res) => {
+  const blockedProducts = Array.from(antibanService.blockedProducts.entries()).map(([productId, info]) => ({
+    productId,
+    reason: info.reason,
+    blockedAt: new Date(info.blockedAt).toLocaleString('ru-RU'),
+    attempts: info.attempts,
+    nextRetryAt: new Date(info.nextRetryAt).toLocaleString('ru-RU'),
+    canRetryNow: Date.now() > info.nextRetryAt
+  }));
+
+  res.json({
+    totalBlocked: blockedProducts.length,
+    products: blockedProducts,
+    lastUpdated: new Date().toISOString()
+  });
+});
+
+// Разблокировка товара
+app.post('/api/wb/unblock-product/:id', (req, res) => {
+  const productId = req.params.id;
+
+  if (antibanService.blockedProducts.has(productId)) {
+    antibanService.blockedProducts.delete(productId);
+    console.log(`✅ Товар ${productId} разблокирован вручную`);
+    res.json({ success: true, message: `Товар ${productId} разблокирован` });
+  } else {
+    res.status(404).json({ error: 'Товар не найден в списке заблокированных' });
+  }
+});
+
+// Очистка всех заблокированных товаров
+app.post('/api/wb/clear-blocked-products', (req, res) => {
+  const count = antibanService.blockedProducts.size;
+  antibanService.blockedProducts.clear();
+  console.log(`🧹 Очищено ${count} заблокированных товаров`);
+  res.json({ success: true, message: `Очищено ${count} заблокированных товаров` });
 });
 
 // 📊 МОНИТОРИНГ ЗАЩИТЫ ОТ БАНА
