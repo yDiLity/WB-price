@@ -127,7 +127,21 @@ class WBAntibanService {
     const isBannedStatus = [403, 429, 503, 520, 521, 522, 523, 524].includes(response.status);
 
     // Проверяем размер ответа (слишком маленький может означать блокировку)
-    const isSuspiciousSize = responseText.length < 100 && response.status === 200;
+    // Но только если это не пустой результат поиска
+    let isSuspiciousSize = false;
+    if (responseText.length < 100 && response.status === 200) {
+      try {
+        const jsonData = JSON.parse(responseText);
+        // Если это пустой результат поиска - это нормально, не блокировка
+        if (jsonData && jsonData.data && jsonData.data.products && Array.isArray(jsonData.data.products)) {
+          isSuspiciousSize = false; // Пустой результат поиска - не блокировка
+        } else {
+          isSuspiciousSize = true; // Подозрительно короткий ответ
+        }
+      } catch (e) {
+        isSuspiciousSize = true; // Не JSON и короткий - подозрительно
+      }
+    }
 
     if (isBannedStatus || hasBanIndicator || isSuspiciousSize) {
       this.banDetectionCount++;
@@ -829,44 +843,53 @@ app.get('/api/wb/product/:id', async (req, res) => {
       console.log('⚠️ Ошибка веб-парсинга:', webError.message);
     }
 
-    // Если все методы не сработали, создаем fallback данные
-    console.log('🔄 Все методы парсинга не сработали, создаем fallback данные...');
+    // Проверяем, были ли обнаружены блокировки в процессе парсинга
+    const wasBlocked = antibanService.banDetectionCount > 0 || antibanService.emergencyMode;
 
-    const fallbackProduct = {
-      id: parseInt(productId),
-      name: `Товар ${productId}`,
-      brand: 'Неизвестный бренд',
-      price: 0,
-      originalPrice: 0,
-      discount: 0,
-      rating: 0,
-      supplierRating: 0,
-      feedbacks: 0,
-      volume: 0,
-      pics: 0,
-      video: null,
-      supplier: 'Неизвестный поставщик',
-      supplierId: null,
-      category: null,
-      categoryId: null,
-      root: null,
-      kindId: null,
-      colors: [],
-      sizes: [],
-      promoTextCard: '',
-      promoTextCat: '',
-      source: 'FALLBACK_DATA',
-      lastUpdated: new Date().toISOString(),
-      parseMethod: 'fallback',
-      note: 'Данные недоступны из-за блокировок Wildberries. Попробуйте позже.',
-      isBlocked: true
-    };
+    if (wasBlocked) {
+      // Если были блокировки, создаем fallback данные
+      console.log('🔄 Обнаружены блокировки, создаем fallback данные...');
 
-    // Кешируем fallback данные на короткое время
-    antibanService.setCachedData(cacheKey, fallbackProduct, 60000); // 1 минута
+      const fallbackProduct = {
+        id: parseInt(productId),
+        name: `Товар ${productId}`,
+        brand: 'Неизвестный бренд',
+        price: 0,
+        originalPrice: 0,
+        discount: 0,
+        rating: 0,
+        supplierRating: 0,
+        feedbacks: 0,
+        volume: 0,
+        pics: 0,
+        video: null,
+        supplier: 'Неизвестный поставщик',
+        supplierId: null,
+        category: null,
+        categoryId: null,
+        root: null,
+        kindId: null,
+        colors: [],
+        sizes: [],
+        promoTextCard: '',
+        promoTextCat: '',
+        source: 'FALLBACK_DATA',
+        lastUpdated: new Date().toISOString(),
+        parseMethod: 'fallback',
+        note: 'Данные недоступны из-за блокировок Wildberries. Попробуйте позже.',
+        isBlocked: true
+      };
 
-    console.log('⚠️ Возвращаем fallback данные для товара:', productId);
-    return res.json(fallbackProduct);
+      // Кешируем fallback данные на короткое время
+      antibanService.setCachedData(cacheKey, fallbackProduct, 60000); // 1 минута
+
+      console.log('⚠️ Возвращаем fallback данные для товара:', productId);
+      return res.json(fallbackProduct);
+    } else {
+      // Если блокировок не было, товар действительно не найден
+      console.log('❌ Товар не найден, блокировок не обнаружено');
+      return res.status(404).json({ error: 'Товар не найден на Wildberries' });
+    }
   } catch (error) {
     console.error('🚫 Ошибка серверного парсинга товара:', error);
     res.status(500).json({ error: 'Ошибка получения данных товара' });
