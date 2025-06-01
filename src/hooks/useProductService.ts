@@ -9,7 +9,7 @@ import {
 } from '../types/product';
 import { PricingStrategySettings } from '../components/pricing/PricingStrategyModal';
 import { useToast } from '@chakra-ui/react';
-import { mockProducts } from '../services/mockData';
+import { realSellerProducts } from '../services/realProductData';
 import { useApiMode } from './useApiMode';
 
 // Интерфейс для сервиса товаров
@@ -61,8 +61,8 @@ export const useProductService = (): ProductService => {
       // Задержка для имитации запроса к API
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      console.log('Using mock data, total products:', mockProducts.length);
-      let filteredProducts = [...mockProducts];
+      console.log('🛒 Using REAL seller products:', realSellerProducts.length);
+      let filteredProducts = [...realSellerProducts];
 
       // Применяем фильтры, если они указаны
       if (filters) {
@@ -205,7 +205,7 @@ export const useProductService = (): ProductService => {
       // Задержка для имитации запроса к API
       await new Promise(resolve => setTimeout(resolve, 300));
 
-      const product = mockProducts.find(p => p.id === id);
+      const product = realSellerProducts.find(p => p.id === id);
 
       if (!product) {
         throw new Error(`Product with ID ${id} not found`);
@@ -283,7 +283,7 @@ export const useProductService = (): ProductService => {
       // Задержка для имитации запроса к API
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      const productIndex = mockProducts.findIndex(p => p.id === id);
+      const productIndex = realSellerProducts.findIndex(p => p.id === id);
 
       if (productIndex === -1) {
         throw new Error(`Product with ID ${id} not found`);
@@ -291,7 +291,7 @@ export const useProductService = (): ProductService => {
 
       // Обновляем товар
       const updatedProduct: Product = {
-        ...mockProducts[productIndex],
+        ...realSellerProducts[productIndex],
         ...updates,
         updatedAt: new Date()
       };
@@ -323,7 +323,7 @@ export const useProductService = (): ProductService => {
       // Задержка для имитации запроса к API
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      const productIndex = mockProducts.findIndex(p => p.id === id);
+      const productIndex = realSellerProducts.findIndex(p => p.id === id);
 
       if (productIndex === -1) {
         throw new Error(`Product with ID ${id} not found`);
@@ -365,7 +365,7 @@ export const useProductService = (): ProductService => {
       // Задержка для имитации запроса к API
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      const productIndex = mockProducts.findIndex(p => p.id === productId);
+      const productIndex = realSellerProducts.findIndex(p => p.id === productId);
 
       if (productIndex === -1) {
         throw new Error(`Product with ID ${productId} not found`);

@@ -12,8 +12,20 @@ import ThemeToggle from '../ThemeToggle';
  */
 export default function RoleBasedNavbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { hasPermission } = usePermissions();
+
+  // Отладка роли пользователя
+  console.log('🔐 Navbar: текущий пользователь:', user?.role, user?.username);
+
+  // ПРИНУДИТЕЛЬНАЯ ПРОВЕРКА РОЛИ
+  if (user && user.username === 'demo' && user.role !== 'seller') {
+    console.log('🔧 ИСПРАВЛЯЕМ роль demo пользователя с', user.role, 'на seller');
+    // Обновляем пользователя в localStorage
+    const updatedUser = { ...user, role: 'seller' };
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+    window.location.reload();
+  }
 
   // Цвета для темной/светлой темы
   const navBg = useColorModeValue('white', 'gray.800');
@@ -24,17 +36,23 @@ export default function RoleBasedNavbar() {
   const hoverBg = useColorModeValue('rgba(0, 128, 255, 0.05)', 'rgba(0, 128, 255, 0.2)');
 
   // Фильтруем меню по разрешениям пользователя
-  const filteredMenu = filterMenuByPermissions(
+  // Если пользователь не авторизован - показываем только базовые разделы
+  const filteredMenu = user ? filterMenuByPermissions(
     NAVIGATION_MENU,
-    user?.role || null,
+    user.role,
     hasPermission
-  );
+  ) : [
+    // Меню для неавторизованных пользователей (гостей)
+    { label: 'Главная', to: '/', permission: 'public', category: 'main' },
+    { label: 'О системе', to: '/about', permission: 'public', category: 'main' }
+  ];
 
   // Группируем меню
   const menuGroups = getMenuGroups(filteredMenu);
 
   // Получаем роль пользователя для отображения
   const getRoleDisplay = (role: UserRole) => {
+    console.log('🔐 getRoleDisplay вызван с ролью:', role);
     switch (role) {
       case UserRole.ADMIN: return { name: 'Админ', color: '#9333ea' };
       case UserRole.MANAGER: return { name: 'Менеджер', color: '#059669' };
@@ -44,11 +62,11 @@ export default function RoleBasedNavbar() {
     }
   };
 
-  const roleDisplay = user ? getRoleDisplay(user.role) : null;
+  const roleDisplay = user ? getRoleDisplay(user.role) : { name: 'Гость', color: '#6b7280' };
 
   return (
-    <nav 
-      className="shadow-lg sticky top-0 z-50" 
+    <nav
+      className="shadow-lg sticky top-0 z-50"
       style={{ backgroundColor: navBg, borderBottom: `1px solid ${borderColor}` }}
     >
       <div className="container mx-auto px-4">
@@ -56,25 +74,25 @@ export default function RoleBasedNavbar() {
           {/* Логотип */}
           <div className="flex items-center">
             <Link to="/" className="flex items-center space-x-2">
-              <svg 
-                className="h-8 w-8" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                xmlns="http://www.w3.org/2000/svg" 
+              <svg
+                className="h-8 w-8"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
                 style={{ color: logoColor }}
               >
-                <path 
-                  d="M12 4L4 8L12 12L20 8L12 4Z" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
+                <path
+                  d="M12 4L4 8L12 12L20 8L12 4Z"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
                   strokeLinejoin="round"
                 />
-                <path 
-                  d="M4 12L12 16L20 12" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
+                <path
+                  d="M4 12L12 16L20 12"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
                   strokeLinejoin="round"
                 />
               </svg>
@@ -82,14 +100,12 @@ export default function RoleBasedNavbar() {
                 <span className="font-bold text-lg" style={{ color: textColor }}>
                   WB Finder
                 </span>
-                {roleDisplay && (
-                  <span 
-                    className="text-xs font-medium"
-                    style={{ color: roleDisplay.color }}
-                  >
-                    {roleDisplay.name}
-                  </span>
-                )}
+                <span
+                  className="text-xs font-medium"
+                  style={{ color: roleDisplay.color }}
+                >
+                  {roleDisplay.name}
+                </span>
               </div>
             </Link>
           </div>
@@ -227,6 +243,7 @@ export default function RoleBasedNavbar() {
                 </Link>
                 <ThemeToggle size="sm" />
                 <button
+                  onClick={logout}
                   className="px-3 py-2 rounded-md text-sm font-medium transition-colors border"
                   style={{
                     borderColor: hoverTextColor,
@@ -314,8 +331,8 @@ export default function RoleBasedNavbar() {
 
       {/* Мобильное выпадающее меню */}
       {isMenuOpen && (
-        <div 
-          className="md:hidden shadow-lg" 
+        <div
+          className="md:hidden shadow-lg"
           style={{ backgroundColor: navBg, borderTop: `1px solid ${borderColor}` }}
         >
           <div className="px-4 pt-2 pb-3 space-y-1">
@@ -346,8 +363,8 @@ export default function RoleBasedNavbar() {
           </div>
 
           {/* Мобильные кнопки входа/выхода */}
-          <div 
-            className="pt-4 pb-3 border-t" 
+          <div
+            className="pt-4 pb-3 border-t"
             style={{ borderColor: borderColor }}
           >
             <div className="px-4 space-y-3">
@@ -369,6 +386,10 @@ export default function RoleBasedNavbar() {
                     </div>
                   </div>
                   <button
+                    onClick={() => {
+                      logout();
+                      setIsMenuOpen(false);
+                    }}
                     className="w-full text-left px-3 py-2 rounded-md text-base font-medium transition-colors border"
                     style={{
                       borderColor: hoverTextColor,

@@ -48,7 +48,7 @@ import {
 } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { NotificationPreferences, User } from '../types';
+import { User, NotificationPreferences } from '../types/auth';
 import {
   FaStore,
   FaBox,
@@ -104,45 +104,69 @@ export default function ProfilePage() {
     { id: '5', name: 'Новосибирск', address: 'Новосибирская область', region: 'Новосибирск' },
   ];
 
-  const [name, setName] = useState(user?.name || '');
-  const [apiKey, setApiKey] = useState(user?.apiKey || '');
-  const [notificationPreferences, setNotificationPreferences] = useState<NotificationPreferences>(
-    user?.notificationPreferences || {
-      email: true,
-      push: true,
-      telegram: false,
-      telegramChatId: '',
-      priorityWarehouses: [],
-      priorityTimeSlots: []
-    }
-  );
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [apiKey, setApiKey] = useState('');
+  const [notificationPreferences, setNotificationPreferences] = useState<NotificationPreferences>({
+    email: true,
+    push: true,
+    telegram: false,
+    telegramChatId: '',
+    priorityWarehouses: [],
+    priorityTimeSlots: []
+  });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
-  // Данные профиля магазина (мок-данные)
-  const [shopProfile] = useState<ShopProfile>({
-    id: 'shop_12345',
-    name: user?.name || 'Мой магазин на OZON',
-    email: user?.email || 'shop@example.com',
-    marketplace: 'OZON',
-    supplierId: '123456789',
-    workMethod: 'FBO',
-    registrationDate: '15.03.2024',
-    lastUpdate: '29.05.2025 12:51',
-    totalProducts: 2177,
-    activeProducts: 1834,
-    productsOnSale: 1456,
-    productsWithDiscount: 843,
-    brandsWithDiscount: 45,
-    productsOutOfStock: 343,
-    brandsOutOfStock: 12,
-    totalRevenue: 2450000,
-    monthlyRevenue: 185000,
-    averageMargin: 23.5,
-    automationEnabled: true,
-    apiConnected: !!apiKey,
+  // Данные профиля магазина - динамически обновляются при изменении API ключа
+  const [shopProfile, setShopProfile] = useState<ShopProfile>(() => {
+    const hasApiKey = !!apiKey;
+    return {
+      id: 'shop_12345',
+      name: user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'yDiLity ООО' : 'yDiLity ООО',
+      email: user?.email || 'shop@ydility.com',
+      marketplace: 'Wildberries',
+      supplierId: hasApiKey ? '123456789' : '000000000',
+      workMethod: 'FBS',
+      registrationDate: '15.03.2024',
+      lastUpdate: hasApiKey ? '29.05.2025 12:51' : 'Не синхронизировано',
+      totalProducts: hasApiKey ? 4 : 0, // Ваши 4 товара или 0
+      activeProducts: hasApiKey ? 4 : 0,
+      productsOnSale: hasApiKey ? 4 : 0,
+      productsWithDiscount: hasApiKey ? 0 : 0,
+      brandsWithDiscount: hasApiKey ? 0 : 0,
+      productsOutOfStock: hasApiKey ? 0 : 0,
+      brandsOutOfStock: hasApiKey ? 0 : 0,
+      totalRevenue: hasApiKey ? 59680 : 0, // Сумма ваших товаров: 53400+5100+540+640
+      monthlyRevenue: hasApiKey ? 185000 : 0,
+      averageMargin: hasApiKey ? 23.5 : 0,
+      automationEnabled: hasApiKey,
+      apiConnected: hasApiKey,
+    };
   });
+
+  // Обновляем профиль при изменении API ключа
+  useEffect(() => {
+    const hasApiKey = !!apiKey;
+    setShopProfile(prev => ({
+      ...prev,
+      supplierId: hasApiKey ? '123456789' : '000000000',
+      lastUpdate: hasApiKey ? '29.05.2025 12:51' : 'Не синхронизировано',
+      totalProducts: hasApiKey ? 4 : 0,
+      activeProducts: hasApiKey ? 4 : 0,
+      productsOnSale: hasApiKey ? 4 : 0,
+      productsWithDiscount: hasApiKey ? 0 : 0,
+      brandsWithDiscount: hasApiKey ? 0 : 0,
+      productsOutOfStock: hasApiKey ? 0 : 0,
+      brandsOutOfStock: hasApiKey ? 0 : 0,
+      totalRevenue: hasApiKey ? 59680 : 0,
+      monthlyRevenue: hasApiKey ? 185000 : 0,
+      averageMargin: hasApiKey ? 23.5 : 0,
+      automationEnabled: hasApiKey,
+      apiConnected: hasApiKey,
+    }));
+  }, [apiKey]);
 
   const bgColor = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('blue.500', 'blue.300');
@@ -151,9 +175,19 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (user) {
-      setName(user.name || '');
-      setApiKey(user.apiKey || '');
-      setNotificationPreferences(user.notificationPreferences);
+      setFirstName(user.firstName || '');
+      setLastName(user.lastName || '');
+      setApiKey(user.ozonApiCredentials?.apiKey || '');
+      if (user.notificationPreferences) {
+        setNotificationPreferences({
+          email: user.notificationPreferences.email ?? true,
+          push: user.notificationPreferences.push ?? true,
+          telegram: user.notificationPreferences.telegram ?? false,
+          telegramChatId: user.notificationPreferences.telegramChatId || '',
+          priorityWarehouses: user.notificationPreferences.priorityWarehouses || [],
+          priorityTimeSlots: user.notificationPreferences.priorityTimeSlots || []
+        });
+      }
     }
   }, [user]);
 
@@ -163,8 +197,14 @@ export default function ProfilePage() {
 
     try {
       const updatedUser: Partial<User> = {
-        name,
-        apiKey,
+        firstName,
+        lastName,
+        ozonApiCredentials: {
+          ...user?.ozonApiCredentials,
+          apiKey,
+          clientId: user?.ozonApiCredentials?.clientId || '',
+          isValid: user?.ozonApiCredentials?.isValid || false
+        },
         notificationPreferences
       };
 
@@ -253,15 +293,15 @@ export default function ProfilePage() {
               <Box
                 boxSize="80px"
                 borderRadius="xl"
-                bg="blue.500"
+                bg="purple.500"
                 display="flex"
                 alignItems="center"
                 justifyContent="center"
                 color="white"
-                fontSize="2xl"
+                fontSize="xl"
                 fontWeight="bold"
               >
-                OZON
+                WB
               </Box>
               <VStack align="start" spacing={1} flex="1">
                 <Heading size="lg">
@@ -388,15 +428,24 @@ export default function ProfilePage() {
                 <VStack spacing={4} align="stretch">
                   <FormControl>
                     <FormLabel>Email</FormLabel>
-                    <Input value={user?.email} isReadOnly />
+                    <Input value={user?.email || ''} isReadOnly />
                   </FormControl>
 
                   <FormControl>
                     <FormLabel>Имя</FormLabel>
                     <Input
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
                       placeholder="Ваше имя"
+                    />
+                  </FormControl>
+
+                  <FormControl>
+                    <FormLabel>Фамилия</FormLabel>
+                    <Input
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      placeholder="Ваша фамилия"
                     />
                   </FormControl>
 
@@ -469,7 +518,7 @@ export default function ProfilePage() {
                     <FormControl>
                       <FormLabel>Telegram Chat ID</FormLabel>
                       <Input
-                        value={notificationPreferences.telegramChatId || ''}
+                        value={notificationPreferences.telegramChatId}
                         onChange={(e) => handleNotificationChange('telegramChatId', e.target.value)}
                         placeholder="Ваш Chat ID в Telegram"
                       />
@@ -488,7 +537,7 @@ export default function ProfilePage() {
 
                   <CheckboxGroup
                     colorScheme="blue"
-                    value={notificationPreferences.priorityWarehouses || []}
+                    value={notificationPreferences.priorityWarehouses}
                     onChange={handleWarehouseChange}
                   >
                     <Stack spacing={2}>

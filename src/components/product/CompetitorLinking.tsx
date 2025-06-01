@@ -41,7 +41,15 @@ import {
   CheckIcon
 } from '@chakra-ui/icons';
 import { Product, CompetitorProduct } from '../../types/product';
-import { mockCompetitors } from '../../services/mockData';
+
+// Реальные конкуренты для продавца yDiLity ООО
+const realCompetitors = [
+  { id: 'wb-main', name: 'Wildberries', url: 'https://wildberries.ru' },
+  { id: 'ozon-main', name: 'Ozon', url: 'https://ozon.ru' },
+  { id: 'yandex-market', name: 'Яндекс.Маркет', url: 'https://market.yandex.ru' },
+  { id: 'megamarket', name: 'МегаМаркет', url: 'https://megamarket.ru' },
+  { id: 'aliexpress', name: 'AliExpress', url: 'https://aliexpress.ru' }
+];
 
 interface CompetitorLinkingProps {
   product: Product;
@@ -61,18 +69,18 @@ export default function CompetitorLinking({
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const [searchResults, setSearchResults] = useState<CompetitorProduct[]>([]);
-  
+
   // Состояние для выбранных конкурентов
   const [selectedCompetitors, setSelectedCompetitors] = useState<CompetitorProduct[]>(initialCompetitors);
-  
+
   // Состояние для фильтрации
   const [showOnlyOzon, setShowOnlyOzon] = useState<boolean>(false);
-  
+
   // Цвета для светлой/темной темы
   const bgColor = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.600');
   const headerBg = useColorModeValue('gray.50', 'gray.700');
-  
+
   // Форматирование цены
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('ru-RU', {
@@ -81,25 +89,25 @@ export default function CompetitorLinking({
       maximumFractionDigits: 0
     }).format(price);
   };
-  
+
   // Обработчик поиска конкурентов
   const handleSearch = () => {
     if (!searchTerm.trim()) return;
-    
+
     setIsSearching(true);
-    
+
     // Имитация задержки API
     setTimeout(() => {
       // Генерация случайных результатов поиска
       const results: CompetitorProduct[] = [];
-      
+
       // Добавляем 5-10 случайных конкурентов
       const numberOfResults = Math.floor(Math.random() * 6) + 5;
-      
+
       for (let i = 0; i < numberOfResults; i++) {
-        const competitor = mockCompetitors[Math.floor(Math.random() * mockCompetitors.length)];
+        const competitor = realCompetitors[Math.floor(Math.random() * realCompetitors.length)];
         const price = Math.round(product.price.current * (0.85 + Math.random() * 0.3));
-        
+
         results.push({
           id: `comp-${Date.now()}-${i}`,
           competitorId: competitor.id,
@@ -110,12 +118,12 @@ export default function CompetitorLinking({
           lastUpdated: new Date()
         });
       }
-      
+
       setSearchResults(results);
       setIsSearching(false);
     }, 1000);
   };
-  
+
   // Обработчик добавления конкурента
   const handleAddCompetitor = (competitor: CompetitorProduct) => {
     if (!selectedCompetitors.find(c => c.id === competitor.id)) {
@@ -124,38 +132,38 @@ export default function CompetitorLinking({
       onSelectCompetitors(updatedCompetitors);
     }
   };
-  
+
   // Обработчик удаления конкурента
   const handleRemoveCompetitor = (competitorId: string) => {
     const updatedCompetitors = selectedCompetitors.filter(c => c.id !== competitorId);
     setSelectedCompetitors(updatedCompetitors);
     onSelectCompetitors(updatedCompetitors);
   };
-  
+
   // Фильтрация результатов поиска
   const filteredSearchResults = showOnlyOzon
     ? searchResults.filter(c => c.competitorName.toLowerCase().includes('ozon') || c.url.toLowerCase().includes('ozon.ru'))
     : searchResults;
-  
+
   // Получение цвета для разницы в цене
   const getPriceDiffColor = (competitorPrice: number) => {
     const priceDiff = ((competitorPrice - product.price.current) / product.price.current) * 100;
-    
+
     if (priceDiff < -10) return 'green.500';
     if (priceDiff < 0) return 'green.400';
     if (priceDiff === 0) return 'gray.500';
     if (priceDiff > 10) return 'red.500';
     return 'red.400';
   };
-  
+
   // Получение текста для разницы в цене
   const getPriceDiffText = (competitorPrice: number) => {
     const priceDiff = competitorPrice - product.price.current;
     const priceDiffPercent = (priceDiff / product.price.current) * 100;
-    
+
     return `${priceDiff > 0 ? '+' : ''}${priceDiff.toLocaleString('ru-RU')} ₽ (${priceDiffPercent.toFixed(1)}%)`;
   };
-  
+
   return (
     <Box>
       <Tabs variant="enclosed" colorScheme="blue">
@@ -163,7 +171,7 @@ export default function CompetitorLinking({
           <Tab>Поиск конкурентов</Tab>
           <Tab>Связанные конкуренты ({selectedCompetitors.length})</Tab>
         </TabList>
-        
+
         <TabPanels>
           {/* Вкладка поиска конкурентов */}
           <TabPanel p={0}>
@@ -180,7 +188,7 @@ export default function CompetitorLinking({
                     onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                   />
                 </InputGroup>
-                
+
                 <Button
                   colorScheme="blue"
                   onClick={handleSearch}
@@ -190,15 +198,15 @@ export default function CompetitorLinking({
                 >
                   Найти
                 </Button>
-                
+
                 <Checkbox
                   isChecked={showOnlyOzon}
                   onChange={(e) => setShowOnlyOzon(e.target.checked)}
                 >
-                  Только Ozon
+                  Только WB
                 </Checkbox>
               </Flex>
-              
+
               {isSearching ? (
                 <Flex justify="center" align="center" height="200px">
                   <Spinner size="xl" color="blue.500" thickness="4px" />
@@ -260,7 +268,7 @@ export default function CompetitorLinking({
                                   onClick={() => window.open(competitor.url, '_blank')}
                                 />
                               </Tooltip>
-                              
+
                               <Tooltip label="Добавить связь">
                                 <IconButton
                                   icon={<AddIcon />}
@@ -282,7 +290,7 @@ export default function CompetitorLinking({
               )}
             </Box>
           </TabPanel>
-          
+
           {/* Вкладка связанных конкурентов */}
           <TabPanel p={0}>
             <Box p={4}>
@@ -343,7 +351,7 @@ export default function CompetitorLinking({
                                   onClick={() => window.open(competitor.url, '_blank')}
                                 />
                               </Tooltip>
-                              
+
                               <Tooltip label="Удалить связь">
                                 <IconButton
                                   icon={<DeleteIcon />}

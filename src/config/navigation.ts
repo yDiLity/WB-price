@@ -30,8 +30,14 @@ export const NAVIGATION_MENU: MenuItem[] = [
   // Разделы для продавцов и выше
   {
     label: '📦 Мои товары',
-    to: '/products',
+    to: '/wb-products',
     permission: 'products.view'
+  },
+  {
+    label: '🎯 Стратегии',
+    to: '/strategies',
+    permission: 'strategies.view',
+    roles: [UserRole.SELLER, UserRole.MANAGER, UserRole.ADMIN]
   },
   {
     label: '🔍 Поиск конкурентов',
@@ -81,6 +87,13 @@ export const NAVIGATION_MENU: MenuItem[] = [
     to: '/wb-protection',
     permission: 'security.view',
     roles: [UserRole.ADMIN]
+  },
+  {
+    label: '🧪 Тест WB API',
+    to: '/wb-api-test',
+    permission: 'system.api',
+    roles: [UserRole.SELLER, UserRole.MANAGER, UserRole.ADMIN],
+    isNew: true
   },
   {
     label: '🧠 Аналитика банов',
@@ -158,16 +171,16 @@ export const filterMenuByPermissions = (
  */
 export const getMenuGroups = (filteredMenu: MenuItem[]) => {
   return {
-    main: filteredMenu.filter(item => 
-      ['🏠 Главная', '👤 Профиль', '📦 Мои товары', '🔍 Поиск конкурентов', '💰 Управление ценами', '📊 Отчеты'].includes(item.label)
+    main: filteredMenu.filter(item =>
+      ['🏠 Главная', '👤 Профиль', '📦 Мои товары', '🎯 Стратегии', '🔍 Поиск конкурентов', '💰 Управление ценами', '📊 Отчеты'].includes(item.label)
     ),
-    tools: filteredMenu.filter(item => 
+    tools: filteredMenu.filter(item =>
       ['🕷️ Парсинг WB', '🔍 Декодер артикулов'].includes(item.label)
     ),
-    admin: filteredMenu.filter(item => 
-      ['👥 Пользователи', '📊 Мониторинг', '🛡️ Защита WB', '🧠 Аналитика банов', '🤖 ML-Аналитика', '🧠 Логический оптимизатор', '🔌 API WB', '🔗 Интеграция', '🔒 Настройки безопасности'].includes(item.label)
+    admin: filteredMenu.filter(item =>
+      ['👥 Пользователи', '📊 Мониторинг', '🛡️ Защита WB', '🧪 Тест WB API', '🧠 Аналитика банов', '🤖 ML-Аналитика', '🧠 Логический оптимизатор', '🔌 API WB', '🔗 Интеграция', '🔒 Настройки безопасности'].includes(item.label)
     ),
-    settings: filteredMenu.filter(item => 
+    settings: filteredMenu.filter(item =>
       ['⚙️ Настройки'].includes(item.label)
     )
   };

@@ -12,7 +12,7 @@ import {
   AlertIcon,
   useColorModeValue
 } from '@chakra-ui/react';
-import { mockProducts } from '../services/mockData';
+import { realSellerProducts } from '../services/realProductData';
 import { Product } from '../types/product';
 
 export default function SimpleEnhancedProductsPage() {
@@ -35,10 +35,10 @@ export default function SimpleEnhancedProductsPage() {
     try {
       // Имитация задержки загрузки
       await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Загрузка товаров из mockData
-      console.log('SimpleEnhancedProductsPage: mockProducts length:', mockProducts.length);
-      setProducts(mockProducts.slice(0, 10)); // Берем только первые 10 товаров для простоты
+
+      // Загрузка товаров из realProductData
+      console.log('SimpleEnhancedProductsPage: realSellerProducts length:', realSellerProducts.length);
+      setProducts(realSellerProducts); // Все ваши реальные товары
     } catch (err) {
       console.error('SimpleEnhancedProductsPage: Error loading products:', err);
       setError('Ошибка при загрузке товаров');

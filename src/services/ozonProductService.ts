@@ -5,14 +5,15 @@ import {
   ProductCategory,
   ProductStatus
 } from '../types/product';
-import { mockOzonProducts, generateMockProduct } from './mockData';
+import { realSellerProducts } from './realProductData';
 
 // Класс для работы с API товаров Ozon
 class OzonProductService {
-  private products: Product[] = [...mockOzonProducts];
+  private products: Product[] = [...realSellerProducts];
 
   constructor() {
-    console.log('OzonProductService initialized with', this.products.length, 'products');
+    console.log('🛒 OzonProductService initialized with', this.products.length, 'REAL products');
+    console.log('📦 WB Products:', this.products.map(p => p.title));
   }
 
   // Получение всех товаров с фильтрацией и пагинацией

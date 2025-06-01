@@ -49,13 +49,13 @@ import {
   TagLeftIcon,
   VStack,
 } from '@chakra-ui/react';
-import { 
-  FaSearch, 
-  FaSync, 
-  FaBoxOpen, 
-  FaExclamationTriangle, 
-  FaArrowUp, 
-  FaArrowDown, 
+import {
+  FaSearch,
+  FaSync,
+  FaBoxOpen,
+  FaExclamationTriangle,
+  FaArrowUp,
+  FaArrowDown,
   FaEquals,
   FaInfoCircle,
   FaEdit,
@@ -69,14 +69,16 @@ import {
 import logisticsService from '../../services/logisticsService';
 import { StockData, OptimizePriceResult } from '../../types/logistics';
 
-// Моковые данные о товарах
-const mockProducts = [
-  { id: '123456', name: 'Смартфон Samsung Galaxy A53', category: 'Электроника', price: 29990, stock: 15 },
-  { id: '789012', name: 'Наушники Apple AirPods Pro', category: 'Аксессуары', price: 19990, stock: 8 },
-  { id: '345678', name: 'Ноутбук ASUS VivoBook', category: 'Компьютеры', price: 59990, stock: 3 },
-  { id: '901234', name: 'Умные часы Xiaomi Mi Band 7', category: 'Гаджеты', price: 3990, stock: 25 },
-  { id: '567890', name: 'Планшет Lenovo Tab M10', category: 'Электроника', price: 15990, stock: 12 },
-];
+// Реальные товары продавца yDiLity ООО
+import { realSellerProducts } from '../../services/realProductData';
+
+const realProducts = realSellerProducts.map(product => ({
+  id: product.id,
+  name: product.title,
+  category: product.subcategory || product.category,
+  price: product.price.current,
+  stock: product.stock.available
+}));
 
 interface Product {
   id: string;
@@ -106,29 +108,29 @@ const StockPriceManager: React.FC = () => {
   const [selectedProduct, setSelectedProduct] = useState<OptimizedProduct | null>(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
-  
+
   const bgColor = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.700');
   const hoverBg = useColorModeValue('gray.50', 'gray.700');
-  
+
   useEffect(() => {
-    // Имитация загрузки данных
+    // Загрузка реальных данных продавца yDiLity ООО
     setTimeout(() => {
-      setProducts(mockProducts);
+      setProducts(realProducts);
       setIsLoading(false);
     }, 1000);
   }, []);
-  
+
   // Фильтрация и сортировка товаров
   const filteredProducts = products
     .filter(product => {
       // Поиск по названию
-      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            product.id.includes(searchTerm);
-      
+
       // Фильтр по категории
       const matchesCategory = categoryFilter === 'all' || product.category === categoryFilter;
-      
+
       // Фильтр по остаткам
       let matchesStock = true;
       if (stockFilter === 'low') {
@@ -138,66 +140,66 @@ const StockPriceManager: React.FC = () => {
       } else if (stockFilter === 'normal') {
         matchesStock = product.stock > 10;
       }
-      
+
       return matchesSearch && matchesCategory && matchesStock;
     })
     .sort((a, b) => {
       // Сортировка
       if (sortField === 'name') {
-        return sortDirection === 'asc' 
-          ? a.name.localeCompare(b.name) 
+        return sortDirection === 'asc'
+          ? a.name.localeCompare(b.name)
           : b.name.localeCompare(a.name);
       } else if (sortField === 'price') {
-        return sortDirection === 'asc' 
-          ? a.price - b.price 
+        return sortDirection === 'asc'
+          ? a.price - b.price
           : b.price - a.price;
       } else if (sortField === 'stock') {
-        return sortDirection === 'asc' 
-          ? a.stock - b.stock 
+        return sortDirection === 'asc'
+          ? a.stock - b.stock
           : b.stock - a.stock;
       }
       return 0;
     });
-  
+
   // Получение уникальных категорий для фильтра
   const categories = Array.from(new Set(products.map(p => p.category)));
-  
+
   // Оптимизация цены товара
   const optimizePrice = async (product: OptimizedProduct) => {
     try {
       // Обновляем состояние товара
-      setProducts(prevProducts => 
-        prevProducts.map(p => 
-          p.id === product.id 
-            ? { ...p, isOptimizing: true } 
+      setProducts(prevProducts =>
+        prevProducts.map(p =>
+          p.id === product.id
+            ? { ...p, isOptimizing: true }
             : p
         )
       );
-      
+
       // Запрос к API для оптимизации цены
       const result = await logisticsService.optimizePrice({
         productId: product.id,
         currentPrice: product.price,
         stock: product.stock
       });
-      
+
       // Обновляем товар с оптимизированной ценой
-      setProducts(prevProducts => 
-        prevProducts.map(p => 
-          p.id === product.id 
-            ? { 
-                ...p, 
+      setProducts(prevProducts =>
+        prevProducts.map(p =>
+          p.id === product.id
+            ? {
+                ...p,
                 isOptimizing: false,
                 isOptimized: true,
                 optimizedPrice: result.optimizedPrice,
                 priceChange: result.priceChange,
                 recommendation: result.recommendation,
                 nextDeliveryDate: result.nextDeliveryDate
-              } 
+              }
             : p
         )
       );
-      
+
       toast({
         title: 'Цена оптимизирована',
         description: `Рекомендуемая цена для товара "${product.name}": ${result.optimizedPrice} ₽`,
@@ -207,16 +209,16 @@ const StockPriceManager: React.FC = () => {
       });
     } catch (error) {
       console.error('Error optimizing price:', error);
-      
+
       // Сбрасываем состояние оптимизации
-      setProducts(prevProducts => 
-        prevProducts.map(p => 
-          p.id === product.id 
-            ? { ...p, isOptimizing: false } 
+      setProducts(prevProducts =>
+        prevProducts.map(p =>
+          p.id === product.id
+            ? { ...p, isOptimizing: false }
             : p
         )
       );
-      
+
       toast({
         title: 'Ошибка',
         description: 'Не удалось оптимизировать цену товара',
@@ -226,7 +228,7 @@ const StockPriceManager: React.FC = () => {
       });
     }
   };
-  
+
   // Оптимизация цен всех товаров
   const optimizeAllPrices = async () => {
     toast({
@@ -236,31 +238,31 @@ const StockPriceManager: React.FC = () => {
       duration: 3000,
       isClosable: true,
     });
-    
+
     // Оптимизируем цены последовательно
     for (const product of filteredProducts) {
       await optimizePrice(product);
     }
   };
-  
+
   // Открытие модального окна с деталями товара
   const openProductDetails = (product: OptimizedProduct) => {
     setSelectedProduct(product);
     onOpen();
   };
-  
+
   // Применение оптимизированной цены
   const applyOptimizedPrice = (product: OptimizedProduct) => {
     if (!product.optimizedPrice) return;
-    
-    setProducts(prevProducts => 
-      prevProducts.map(p => 
-        p.id === product.id 
-          ? { ...p, price: product.optimizedPrice, isOptimized: false, optimizedPrice: undefined } 
+
+    setProducts(prevProducts =>
+      prevProducts.map(p =>
+        p.id === product.id
+          ? { ...p, price: product.optimizedPrice, isOptimized: false, optimizedPrice: undefined }
           : p
       )
     );
-    
+
     toast({
       title: 'Цена обновлена',
       description: `Цена товара "${product.name}" обновлена до ${product.optimizedPrice} ₽`,
@@ -269,26 +271,26 @@ const StockPriceManager: React.FC = () => {
       isClosable: true,
     });
   };
-  
+
   // Отклонение оптимизированной цены
   const rejectOptimizedPrice = (product: OptimizedProduct) => {
-    setProducts(prevProducts => 
-      prevProducts.map(p => 
-        p.id === product.id 
-          ? { ...p, isOptimized: false, optimizedPrice: undefined } 
+    setProducts(prevProducts =>
+      prevProducts.map(p =>
+        p.id === product.id
+          ? { ...p, isOptimized: false, optimizedPrice: undefined }
           : p
       )
     );
   };
-  
+
   return (
     <Box>
       <Flex justify="space-between" align="center" mb={6}>
         <Heading size="md">Управление остатками и ценами</Heading>
         <HStack>
-          <Button 
-            leftIcon={<FaSync />} 
-            colorScheme="blue" 
+          <Button
+            leftIcon={<FaSync />}
+            colorScheme="blue"
             variant="outline"
             isLoading={isLoading}
             onClick={() => {
@@ -298,8 +300,8 @@ const StockPriceManager: React.FC = () => {
           >
             Обновить
           </Button>
-          <Button 
-            leftIcon={<FaArrowUp />} 
+          <Button
+            leftIcon={<FaArrowUp />}
             colorScheme="green"
             onClick={optimizeAllPrices}
             isDisabled={isLoading || filteredProducts.length === 0}
@@ -308,11 +310,11 @@ const StockPriceManager: React.FC = () => {
           </Button>
         </HStack>
       </Flex>
-      
+
       {/* Фильтры и поиск */}
-      <Flex 
-        mb={6} 
-        direction={{ base: 'column', md: 'row' }} 
+      <Flex
+        mb={6}
+        direction={{ base: 'column', md: 'row' }}
         gap={4}
         p={4}
         bg={bgColor}
@@ -324,14 +326,14 @@ const StockPriceManager: React.FC = () => {
           <InputLeftElement pointerEvents="none">
             <Icon as={FaSearch} color="gray.400" />
           </InputLeftElement>
-          <Input 
-            placeholder="Поиск по названию или ID" 
+          <Input
+            placeholder="Поиск по названию или ID"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </InputGroup>
-        
-        <Select 
+
+        <Select
           maxW={{ base: '100%', md: '200px' }}
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
@@ -341,8 +343,8 @@ const StockPriceManager: React.FC = () => {
             <option key={index} value={category}>{category}</option>
           ))}
         </Select>
-        
-        <Select 
+
+        <Select
           maxW={{ base: '100%', md: '200px' }}
           value={stockFilter}
           onChange={(e) => setStockFilter(e.target.value)}
@@ -352,8 +354,8 @@ const StockPriceManager: React.FC = () => {
           <option value="low">Низкий запас (≤10)</option>
           <option value="out">Нет в наличии</option>
         </Select>
-        
-        <Select 
+
+        <Select
           maxW={{ base: '100%', md: '200px' }}
           value={`${sortField}-${sortDirection}`}
           onChange={(e) => {
@@ -370,7 +372,7 @@ const StockPriceManager: React.FC = () => {
           <option value="stock-desc">По остаткам (убыв.)</option>
         </Select>
       </Flex>
-      
+
       {/* Таблица товаров */}
       {isLoading ? (
         <Box textAlign="center" py={10}>
@@ -398,7 +400,7 @@ const StockPriceManager: React.FC = () => {
             </Thead>
             <Tbody>
               {filteredProducts.map((product) => (
-                <Tr 
+                <Tr
                   key={product.id}
                   _hover={{ bg: hoverBg }}
                   cursor="pointer"
@@ -445,9 +447,9 @@ const StockPriceManager: React.FC = () => {
                       {product.isOptimized && product.optimizedPrice ? (
                         <>
                           <Tooltip label="Применить оптимизированную цену">
-                            <Button 
-                              size="sm" 
-                              colorScheme="green" 
+                            <Button
+                              size="sm"
+                              colorScheme="green"
                               variant="ghost"
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -458,9 +460,9 @@ const StockPriceManager: React.FC = () => {
                             </Button>
                           </Tooltip>
                           <Tooltip label="Отклонить оптимизированную цену">
-                            <Button 
-                              size="sm" 
-                              colorScheme="red" 
+                            <Button
+                              size="sm"
+                              colorScheme="red"
                               variant="ghost"
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -473,9 +475,9 @@ const StockPriceManager: React.FC = () => {
                         </>
                       ) : (
                         <Tooltip label="Оптимизировать цену">
-                          <Button 
-                            size="sm" 
-                            colorScheme="blue" 
+                          <Button
+                            size="sm"
+                            colorScheme="blue"
                             variant="ghost"
                             isLoading={product.isOptimizing}
                             onClick={(e) => {
@@ -495,7 +497,7 @@ const StockPriceManager: React.FC = () => {
           </Table>
         </Box>
       )}
-      
+
       {/* Модальное окно с деталями товара */}
       {selectedProduct && (
         <Modal isOpen={isOpen} onClose={onClose} size="lg">
@@ -509,15 +511,15 @@ const StockPriceManager: React.FC = () => {
                   <Heading size="md">{selectedProduct.name}</Heading>
                   <Text color="gray.500">ID: {selectedProduct.id}</Text>
                 </Box>
-                
+
                 <Divider />
-                
+
                 <Flex justify="space-between">
                   <Stat>
                     <StatLabel>Текущая цена</StatLabel>
                     <StatNumber>{selectedProduct.price.toLocaleString()} ₽</StatNumber>
                   </Stat>
-                  
+
                   <Stat>
                     <StatLabel>Остаток</StatLabel>
                     <StatNumber>{selectedProduct.stock}</StatNumber>
@@ -531,7 +533,7 @@ const StockPriceManager: React.FC = () => {
                       )}
                     </StatHelpText>
                   </Stat>
-                  
+
                   {selectedProduct.nextDeliveryDate && (
                     <Stat>
                       <StatLabel>Следующая поставка</StatLabel>
@@ -541,15 +543,15 @@ const StockPriceManager: React.FC = () => {
                     </Stat>
                   )}
                 </Flex>
-                
+
                 {selectedProduct.isOptimized && selectedProduct.optimizedPrice && (
                   <>
                     <Divider />
-                    
+
                     <Box p={4} bg={useColorModeValue('blue.50', 'blue.900')} borderRadius="md">
                       <Heading size="sm" mb={2}>Рекомендация по оптимизации цены</Heading>
                       <Text mb={4}>{selectedProduct.recommendation}</Text>
-                      
+
                       <Flex justify="space-between" align="center">
                         <Stat>
                           <StatLabel>Оптимизированная цена</StatLabel>
@@ -564,10 +566,10 @@ const StockPriceManager: React.FC = () => {
                             )}
                           </StatHelpText>
                         </Stat>
-                        
+
                         <HStack>
-                          <Button 
-                            colorScheme="green" 
+                          <Button
+                            colorScheme="green"
                             onClick={() => {
                               applyOptimizedPrice(selectedProduct);
                               onClose();
@@ -575,8 +577,8 @@ const StockPriceManager: React.FC = () => {
                           >
                             Применить
                           </Button>
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             onClick={() => {
                               rejectOptimizedPrice(selectedProduct);
                               onClose();

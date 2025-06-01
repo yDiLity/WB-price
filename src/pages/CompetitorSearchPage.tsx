@@ -13,7 +13,7 @@ import {
   HStack,
   useColorModeValue,
 } from '@chakra-ui/react'
-import CompetitorSearch from '../components/CompetitorSearch'
+import WBCompetitorSearch from '../components/WBCompetitorSearch'
 
 const CompetitorSearchPage: React.FC = () => {
   const bgColor = useColorModeValue('gray.50', 'gray.900')
@@ -62,7 +62,7 @@ const CompetitorSearchPage: React.FC = () => {
           </Alert>
 
           {/* 🔍 Компонент поиска */}
-          <CompetitorSearch />
+          <WBCompetitorSearch />
 
           {/* 📊 Дополнительная информация */}
           <Alert status="warning" borderRadius="lg">
@@ -87,7 +87,7 @@ const CompetitorSearchPage: React.FC = () => {
               <Heading size="md" color={textColor}>
                 💡 Примеры эффективных поисковых запросов
               </Heading>
-              
+
               <VStack align="start" spacing={2}>
                 <Text fontWeight="medium" color="green.600">✅ Хорошие запросы:</Text>
                 <VStack align="start" spacing={1} pl={4}>
@@ -96,7 +96,7 @@ const CompetitorSearchPage: React.FC = () => {
                   <Text fontSize="sm">• "Xiaomi наушники беспроводные"</Text>
                   <Text fontSize="sm">• "Samsung Galaxy S24 защитное стекло"</Text>
                 </VStack>
-                
+
                 <Text fontWeight="medium" color="red.600" mt={4}>❌ Плохие запросы:</Text>
                 <VStack align="start" spacing={1} pl={4}>
                   <Text fontSize="sm">• "телефон" (слишком общий)</Text>

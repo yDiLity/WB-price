@@ -1,104 +1,48 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '@chakra-ui/react';
+import { useAuth } from '../context/AuthContext';
 
 export default function LoginForm() {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState(''); // Изменили с email на username
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const toast = useToast();
+  const { login, isLoading, error } = useAuth();
 
   // Демо-данные для быстрого входа
-  const demoCredentials = {
-    email: 'demo@example.com',
-    password: 'password123'
-  };
+  const demoCredentials = [
+    { username: 'admin', password: 'admin', role: 'Администратор' },
+    { username: 'demo', password: 'demo', role: 'Продавец' },
+    { username: 'manager', password: 'manager', role: 'Менеджер' },
+    { username: 'guest', password: 'guest', role: 'Гость' }
+  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!email || !password) {
-      setError('Пожалуйста, заполните все поля');
+    if (!username || !password) {
       return;
     }
 
-    setIsLoading(true);
-    setError(null);
-
     try {
-      // Имитация запроса к API
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Проверка демо-данных (в реальном приложении здесь будет запрос к API)
-      if (email === demoCredentials.email && password === demoCredentials.password) {
-        // Успешная авторизация
-        toast({
-          title: 'Успешный вход',
-          description: 'Добро пожаловать в Ozon Price Optimizer Pro!',
-          status: 'success',
-          duration: 5000,
-          isClosable: true,
-        });
-
-        // Сохраняем информацию о пользователе в localStorage
-        localStorage.setItem('user', JSON.stringify({
-          email,
-          name: 'Демо Пользователь',
-          role: 'admin',
-          isAuthenticated: true
-        }));
-
-        // Перенаправление на главную страницу
-        navigate('/');
-      } else {
-        // Для демонстрации также разрешаем вход с любыми данными
-        console.log('Авторизация с данными:', { email, password });
-
-        toast({
-          title: 'Успешный вход',
-          description: 'Вход выполнен в демо-режиме',
-          status: 'success',
-          duration: 5000,
-          isClosable: true,
-        });
-
-        // Сохраняем информацию о пользователе в localStorage
-        localStorage.setItem('user', JSON.stringify({
-          email,
-          name: 'Пользователь',
-          role: 'user',
-          isAuthenticated: true
-        }));
-
-        // Перенаправление на главную страницу
+      const success = await login({ username, password });
+      if (success) {
         navigate('/');
       }
     } catch (error) {
-      setError('Ошибка авторизации. Пожалуйста, проверьте введенные данные.');
-
-      toast({
-        title: 'Ошибка входа',
-        description: 'Не удалось выполнить вход. Пожалуйста, проверьте введенные данные.',
-        status: 'error',
-        duration: 5000,
-        isClosable: true,
-      });
-    } finally {
-      setIsLoading(false);
+      console.error('Ошибка входа:', error);
     }
   };
 
   // Функция для быстрого входа с демо-данными
-  const handleDemoLogin = () => {
-    setEmail(demoCredentials.email);
-    setPassword(demoCredentials.password);
+  const handleQuickLogin = (credentials: { username: string; password: string }) => {
+    setUsername(credentials.username);
+    setPassword(credentials.password);
 
     // Небольшая задержка перед отправкой формы
     setTimeout(() => {
       const form = document.getElementById('login-form') as HTMLFormElement;
-      if (form) form.dispatchEvent(new Event('submit', { cancelable: true }));
+      if (form) form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
     }, 500);
   };
 
@@ -112,7 +56,7 @@ export default function LoginForm() {
             </svg>
           </div>
           <h2 className="mt-4 text-center text-3xl font-extrabold text-gray-900">
-            Вход в Ozon Price Optimizer Pro
+            Вход в WB Price Optimizer Pro
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
             Или{' '}
@@ -125,17 +69,17 @@ export default function LoginForm() {
         <form id="login-form" className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm space-y-4">
             <div>
-              <label htmlFor="email-address" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">Логин</label>
               <input
-                id="email-address"
-                name="email"
-                type="email"
-                autoComplete="email"
+                id="username"
+                name="username"
+                type="text"
+                autoComplete="username"
                 required
                 className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
-                placeholder="Введите ваш email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Введите логин (admin, demo, manager, guest)"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
               />
             </div>
             <div>
@@ -212,18 +156,19 @@ export default function LoginForm() {
               {isLoading ? 'Вход...' : 'Войти'}
             </button>
 
-            <button
-              type="button"
-              onClick={handleDemoLogin}
-              className="group relative w-full flex justify-center py-2 px-4 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
-            >
-              <span className="absolute left-0 inset-y-0 flex items-center pl-3">
-                <svg className="h-5 w-5 text-gray-500 group-hover:text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                </svg>
-              </span>
-              Демо-вход
-            </button>
+            {/* Кнопки быстрого входа */}
+            <div className="grid grid-cols-2 gap-2">
+              {demoCredentials.map((cred) => (
+                <button
+                  key={cred.username}
+                  type="button"
+                  onClick={() => handleQuickLogin(cred)}
+                  className="group relative flex justify-center py-2 px-3 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
+                >
+                  {cred.username} ({cred.role})
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="mt-8 pt-4"> {/* Увеличили отступ и добавили padding-top */}
@@ -238,9 +183,12 @@ export default function LoginForm() {
               </div>
             </div>
             <div className="mt-4 text-center text-xs text-gray-500">
-              <p>Email: demo@example.com</p>
-              <p>Пароль: password123</p>
-              <p className="mt-2 text-primary-600 font-medium">Для получения уведомлений подключите Telegram-бота</p>
+              <p><strong>Быстрый вход:</strong></p>
+              <p>👑 admin/admin - Администратор</p>
+              <p>🛒 demo/demo - Продавец</p>
+              <p>📊 manager/manager - Менеджер</p>
+              <p>👁️ guest/guest - Гость</p>
+              <p className="mt-2 text-primary-600 font-medium">Или нажмите кнопки выше для автозаполнения</p>
             </div>
           </div>
         </form>

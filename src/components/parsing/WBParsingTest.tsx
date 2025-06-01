@@ -27,9 +27,10 @@ import {
   Divider,
   Spinner
 } from '@chakra-ui/react';
-import { useState } from 'react';
-import { FaSearch, FaShoppingCart, FaStar, FaEye, FaDownload } from 'react-icons/fa';
+import { useState, useEffect } from 'react';
+import { FaSearch, FaShoppingCart, FaStar, FaEye, FaDownload, FaShieldAlt, FaRobot } from 'react-icons/fa';
 import { wbParsingService, WBProduct, WBSearchParams } from '../../services/wbParsingService';
+import { antiBanService } from '../../services/antiBanService';
 
 export default function WBParsingTest() {
   const [searchQuery, setSearchQuery] = useState('iPhone 15');
@@ -38,10 +39,25 @@ export default function WBParsingTest() {
   const [searchStats, setSearchStats] = useState<any>(null);
   const [selectedProduct, setSelectedProduct] = useState<WBProduct | null>(null);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+  const [antiBanStats, setAntiBanStats] = useState<any>(null);
+  const [isTestingAntiBan, setIsTestingAntiBan] = useState(false);
 
   const cardBg = useColorModeValue('white', 'gray.700');
   const borderColor = useColorModeValue('gray.200', 'gray.600');
   const toast = useToast();
+
+  // Загружаем статистику антибан системы
+  useEffect(() => {
+    const loadAntiBanStats = () => {
+      const stats = antiBanService.getStats();
+      setAntiBanStats(stats);
+    };
+
+    loadAntiBanStats();
+    const interval = setInterval(loadAntiBanStats, 5000); // Обновляем каждые 5 секунд
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
@@ -60,26 +76,43 @@ export default function WBParsingTest() {
     setSearchStats(null);
 
     try {
+      console.log('🔍 Начинаем тестирование парсинга WB...');
+
+      // Показываем уведомление о начале тестирования
+      toast({
+        title: '🕷️ Тестирование парсинга',
+        description: 'Проверяем работу системы защиты от блокировок...',
+        status: 'info',
+        duration: 3000,
+        isClosable: true
+      });
+
       const searchParams: WBSearchParams = {
         query: searchQuery,
         limit: 20,
         sort: 'popular'
       };
 
+      console.log('📋 Параметры поиска:', searchParams);
+
+      const startTime = Date.now();
       const result = await wbParsingService.searchProducts(searchParams);
+      const endTime = Date.now();
+
+      console.log('📊 Результат парсинга:', result);
 
       if (result.success) {
         setResults(result.products);
         setSearchStats({
           totalFound: result.totalFound,
-          searchTime: result.searchTime,
+          searchTime: endTime - startTime,
           currentPage: result.currentPage,
           totalPages: result.totalPages
         });
 
         toast({
-          title: '✅ Поиск завершен',
-          description: `Найдено ${result.products.length} товаров за ${result.searchTime}ms`,
+          title: '✅ Парсинг успешен!',
+          description: `Найдено ${result.products.length} товаров за ${endTime - startTime}ms. Система защиты работает корректно.`,
           status: 'success',
           duration: 5000,
           isClosable: true
@@ -89,12 +122,12 @@ export default function WBParsingTest() {
       }
 
     } catch (error) {
-      console.error('Ошибка поиска:', error);
+      console.error('❌ Ошибка парсинга:', error);
       toast({
-        title: '❌ Ошибка поиска',
-        description: error instanceof Error ? error.message : 'Неизвестная ошибка',
+        title: '❌ Ошибка парсинга',
+        description: `${error instanceof Error ? error.message : 'Неизвестная ошибка'}. Проверьте работу антибан системы.`,
         status: 'error',
-        duration: 5000,
+        duration: 7000,
         isClosable: true
       });
     } finally {
@@ -134,6 +167,50 @@ export default function WBParsingTest() {
     }
   };
 
+  // Тестирование антибан системы
+  const handleTestAntiBan = async () => {
+    setIsTestingAntiBan(true);
+
+    try {
+      toast({
+        title: '🛡️ Тестирование антибан системы',
+        description: 'Проверяем работу системы автоматического восстановления...',
+        status: 'info',
+        duration: 3000,
+        isClosable: true
+      });
+
+      console.log('🛡️ Начинаем тестирование антибан системы...');
+
+      // Принудительная ротация для тестирования
+      antiBanService.forceRotation();
+
+      // Обновляем статистику
+      const newStats = antiBanService.getStats();
+      setAntiBanStats(newStats);
+
+      toast({
+        title: '✅ Антибан система работает!',
+        description: 'Fingerprint и прокси успешно ротированы. Система готова к работе.',
+        status: 'success',
+        duration: 5000,
+        isClosable: true
+      });
+
+    } catch (error) {
+      console.error('❌ Ошибка тестирования антибан системы:', error);
+      toast({
+        title: '❌ Ошибка тестирования',
+        description: 'Не удалось протестировать антибан систему',
+        status: 'error',
+        duration: 5000,
+        isClosable: true
+      });
+    } finally {
+      setIsTestingAntiBan(false);
+    }
+  };
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('ru-RU', {
       style: 'currency',
@@ -163,6 +240,56 @@ export default function WBParsingTest() {
           </Text>
         </CardHeader>
       </Card>
+
+      {/* Статистика антибан системы */}
+      {antiBanStats && (
+        <Card className="purple-card-border" bg={cardBg}>
+          <CardHeader>
+            <HStack justify="space-between">
+              <Heading size="md">🛡️ Статус антибан системы</Heading>
+              <Button
+                size="sm"
+                colorScheme="purple"
+                leftIcon={<FaRobot />}
+                onClick={handleTestAntiBan}
+                isLoading={isTestingAntiBan}
+                loadingText="Тестирование..."
+                className="purple-button-border"
+              >
+                Тест системы
+              </Button>
+            </HStack>
+          </CardHeader>
+          <CardBody>
+            <SimpleGrid columns={{ base: 2, md: 4 }} spacing={4}>
+              <VStack>
+                <Text fontSize="lg" fontWeight="bold" color="green.500">
+                  {antiBanStats.proxyPoolSize}
+                </Text>
+                <Text fontSize="sm" color="gray.600">Прокси в пуле</Text>
+              </VStack>
+              <VStack>
+                <Text fontSize="lg" fontWeight="bold" color="blue.500">
+                  {antiBanStats.requestCount}
+                </Text>
+                <Text fontSize="sm" color="gray.600">Запросов выполнено</Text>
+              </VStack>
+              <VStack>
+                <Text fontSize="lg" fontWeight="bold" color="orange.500">
+                  {antiBanStats.bannedProxies}
+                </Text>
+                <Text fontSize="sm" color="gray.600">Заблокированных прокси</Text>
+              </VStack>
+              <VStack>
+                <Badge colorScheme={antiBanStats.isRecovering ? 'yellow' : 'green'} size="lg" p={2}>
+                  {antiBanStats.isRecovering ? '🔄 Восстановление' : '✅ Активна'}
+                </Badge>
+                <Text fontSize="sm" color="gray.600">Статус системы</Text>
+              </VStack>
+            </SimpleGrid>
+          </CardBody>
+        </Card>
+      )}
 
       {/* Форма поиска */}
       <Card className="purple-card-border" bg={cardBg}>

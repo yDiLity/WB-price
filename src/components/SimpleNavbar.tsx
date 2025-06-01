@@ -64,7 +64,7 @@ export default function SimpleNavbar({ isAuthenticated = false, onLogout }: Simp
           </Box>
           <HStack as={'nav'} spacing={2} display={{ base: 'none', md: 'flex' }}>
             <NavLink to="/">Главная</NavLink>
-            {isAuthenticated && <NavLink to="/products">Товары</NavLink>}
+            {isAuthenticated && <NavLink to="/wb-products">Товары</NavLink>}
 
             {isAuthenticated && (
               <Menu isOpen={isManagementOpen} onClose={() => setIsManagementOpen(false)}>
@@ -167,7 +167,7 @@ export default function SimpleNavbar({ isAuthenticated = false, onLogout }: Simp
             <NavLink to="/">Главная</NavLink>
             {isAuthenticated && (
               <>
-                <NavLink to="/products">Товары</NavLink>
+                <NavLink to="/wb-products">Товары</NavLink>
                 <NavLink to="/strategies">Стратегии</NavLink>
                 <NavLink to="/alerts">Алерты</NavLink>
                 <NavLink to="/ai-analysis">ИИ-анализ</NavLink>

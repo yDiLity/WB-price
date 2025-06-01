@@ -346,15 +346,15 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
       // Имитация задержки сети
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // В реальном приложении здесь будет запрос к API
-      const mockProducts = generateMockProducts();
-      const mockStrategies = generateMockStrategies();
-      const mockAlerts = generateMockAlerts();
+      // Загружаем реальные данные продавца yDiLity ООО
+      const { realSellerProducts } = await import('../services/realProductData');
+      const realStrategies = generateMockStrategies(); // Пока оставим стратегии
+      const realAlerts = generateMockAlerts(); // Пока оставим алерты
 
-      setProducts(mockProducts);
-      setFilteredProducts(mockProducts);
-      setPricingStrategies(mockStrategies);
-      setSuspiciousActivities(mockAlerts);
+      setProducts(realSellerProducts);
+      setFilteredProducts(realSellerProducts);
+      setPricingStrategies(realStrategies);
+      setSuspiciousActivities(realAlerts);
     } catch (error) {
       console.error('Ошибка при получении товаров:', error);
       setError('Не удалось загрузить товары. Пожалуйста, попробуйте позже.');

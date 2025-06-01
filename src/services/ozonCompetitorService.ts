@@ -123,60 +123,60 @@ class WBCompetitorService {
    * @returns Список сгенерированных конкурентов
    */
   private getMockCompetitors(product: Product): CompetitorProduct[] {
-    // Реальные конкуренты с Ozon
-    const ozonCompetitors = [
+    // Реальные конкуренты с Wildberries
+    const wbCompetitors = [
       {
-        id: 'comp-ozon-1',
-        competitorId: 'seller-ozon-1',
-        competitorName: 'OzonSeller Pro',
-        productId: `${product.id}-ozon1`,
+        id: 'comp-wb-1',
+        competitorId: 'seller-wb-1',
+        competitorName: 'WBSeller Pro',
+        productId: `${product.id}-wb1`,
         productTitle: product.title,
         price: Math.round(product.price.current * 0.95),
-        url: `https://ozon.ru/product/${Math.floor(Math.random() * 1000000)}`,
+        url: `https://wildberries.ru/catalog/${Math.floor(Math.random() * 1000000)}/detail.aspx`,
         lastUpdated: new Date(),
         isActive: true
       },
       {
-        id: 'comp-ozon-2',
-        competitorId: 'seller-ozon-2',
-        competitorName: 'MarketMaster Ozon',
-        productId: `${product.id}-ozon2`,
+        id: 'comp-wb-2',
+        competitorId: 'seller-wb-2',
+        competitorName: 'MarketMaster WB',
+        productId: `${product.id}-wb2`,
         productTitle: `${product.title} (аналог)`,
         price: Math.round(product.price.current * 1.02),
-        url: `https://ozon.ru/product/${Math.floor(Math.random() * 1000000)}`,
+        url: `https://wildberries.ru/catalog/${Math.floor(Math.random() * 1000000)}/detail.aspx`,
         lastUpdated: new Date(),
         isActive: true
       },
       {
-        id: 'comp-ozon-3',
-        competitorId: 'seller-ozon-3',
-        competitorName: 'TopSeller Ozon',
-        productId: `${product.id}-ozon3`,
+        id: 'comp-wb-3',
+        competitorId: 'seller-wb-3',
+        competitorName: 'TopSeller WB',
+        productId: `${product.id}-wb3`,
         productTitle: product.title,
         price: Math.round(product.price.current * 0.98),
-        url: `https://ozon.ru/product/${Math.floor(Math.random() * 1000000)}`,
+        url: `https://wildberries.ru/catalog/${Math.floor(Math.random() * 1000000)}/detail.aspx`,
         lastUpdated: new Date(),
         isActive: true
       },
       {
-        id: 'comp-ozon-4',
-        competitorId: 'seller-ozon-4',
-        competitorName: 'OzonExpert',
-        productId: `${product.id}-ozon4`,
+        id: 'comp-wb-4',
+        competitorId: 'seller-wb-4',
+        competitorName: 'WBExpert',
+        productId: `${product.id}-wb4`,
         productTitle: `${product.title} (оригинал)`,
         price: Math.round(product.price.current * 1.05),
-        url: `https://ozon.ru/product/${Math.floor(Math.random() * 1000000)}`,
+        url: `https://wildberries.ru/catalog/${Math.floor(Math.random() * 1000000)}/detail.aspx`,
         lastUpdated: new Date(),
         isActive: true
       },
       {
-        id: 'comp-ozon-5',
-        competitorId: 'seller-ozon-5',
-        competitorName: 'MegaShop Ozon',
-        productId: `${product.id}-ozon5`,
+        id: 'comp-wb-5',
+        competitorId: 'seller-wb-5',
+        competitorName: 'MegaShop WB',
+        productId: `${product.id}-wb5`,
         productTitle: product.title,
         price: Math.round(product.price.current * 0.93),
-        url: `https://ozon.ru/product/${Math.floor(Math.random() * 1000000)}`,
+        url: `https://wildberries.ru/catalog/${Math.floor(Math.random() * 1000000)}/detail.aspx`,
         lastUpdated: new Date(),
         isActive: true
       }
@@ -252,8 +252,8 @@ class WBCompetitorService {
       }
     ];
 
-    // Возвращаем комбинацию конкурентов с Ozon и других маркетплейсов
-    return [...ozonCompetitors, ...otherCompetitors];
+    // Возвращаем комбинацию конкурентов с WB и других маркетплейсов
+    return [...wbCompetitors, ...otherCompetitors];
   }
 }
 

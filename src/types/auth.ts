@@ -10,6 +10,7 @@ export interface User {
   updatedAt: Date;
   ozonApiCredentials?: OzonApiCredentials;
   settings?: UserSettings;
+  notificationPreferences?: NotificationPreferences;
 }
 
 export interface OzonApiCredentials {
@@ -25,6 +26,15 @@ export interface UserSettings {
   emailNotifications: boolean;
   language: 'ru' | 'en';
   defaultPricingStrategy?: string;
+}
+
+export interface NotificationPreferences {
+  email: boolean;
+  push: boolean;
+  telegram: boolean;
+  telegramChatId: string;
+  priorityWarehouses: string[];
+  priorityTimeSlots: string[];
 }
 
 export enum UserRole {
@@ -80,6 +90,10 @@ export const ROLE_PERMISSIONS = {
     'products.view',
     'products.create',
     'products.edit',
+    'strategies.view',
+    'strategies.create',
+    'strategies.edit',
+    'strategies.apply',
     'competitors.view',
     'prices.view',
     'prices.edit',
@@ -91,6 +105,11 @@ export const ROLE_PERMISSIONS = {
     'products.create',
     'products.edit',
     'products.moderate',
+    'strategies.view',
+    'strategies.create',
+    'strategies.edit',
+    'strategies.apply',
+    'strategies.manage',
     'competitors.view',
     'competitors.manage',
     'prices.view',
@@ -103,6 +122,7 @@ export const ROLE_PERMISSIONS = {
   ],
   [UserRole.ADMIN]: [
     'products.*',
+    'strategies.*',
     'competitors.*',
     'prices.*',
     'reports.*',

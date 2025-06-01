@@ -25,11 +25,13 @@ import {
   Stat,
   StatLabel,
   StatNumber,
-  StatHelpText
+  StatHelpText,
+  Divider
 } from '@chakra-ui/react';
 import { FaSpider, FaShieldAlt, FaRocket, FaChartLine } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
 import WBParsingTest from '../components/parsing/WBParsingTest';
+import SystemTestPanel from '../components/testing/SystemTestPanel';
 import { wbParsingService } from '../services/wbParsingService';
 
 export default function WBParsingPage() {
@@ -187,7 +189,15 @@ export default function WBParsingPage() {
           <TabPanels>
             {/* Тестирование парсинга */}
             <TabPanel p={0} pt={6}>
-              <WBParsingTest />
+              <VStack spacing={8} align="stretch">
+                {/* Панель тестирования системы */}
+                <SystemTestPanel />
+
+                <Divider />
+
+                {/* Детальное тестирование парсинга */}
+                <WBParsingTest />
+              </VStack>
             </TabPanel>
 
             {/* Мониторинг конкурентов */}

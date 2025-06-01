@@ -362,7 +362,7 @@ const HelpSystem: React.FC = () => {
                               // Логика перехода к соответствующей странице
                               const routes: Record<string, string> = {
                                 'getting-started': '/dashboard',
-                                'product-management': '/ozon-products',
+                                'product-management': '/wb-products',
                                 'pricing-strategies': '/strategies',
                                 'competitor-linking': '/linked-products',
                                 'auto-regulation': '/auto-price-regulation',

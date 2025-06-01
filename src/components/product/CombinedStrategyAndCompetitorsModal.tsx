@@ -288,7 +288,7 @@ export default function CombinedStrategyAndCompetitorsModal({
 
   // Фильтрация результатов поиска
   const filteredSearchResults = showOnlyOzon
-    ? searchResults.filter(c => c.competitorName.toLowerCase().includes('ozon') || (c.url && c.url.toLowerCase().includes('ozon.ru')))
+    ? searchResults.filter(c => c.competitorName.toLowerCase().includes('wb') || c.competitorName.toLowerCase().includes('wildberries') || (c.url && c.url.toLowerCase().includes('wildberries.ru')))
     : searchResults;
 
   // Получение цвета для разницы в цене
@@ -526,7 +526,7 @@ export default function CombinedStrategyAndCompetitorsModal({
                   isChecked={showOnlyOzon}
                   onChange={(e) => setShowOnlyOzon(e.target.checked)}
                 >
-                  Только Ozon
+                  Только WB
                 </Checkbox>
 
                 <Checkbox

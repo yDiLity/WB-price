@@ -8,33 +8,41 @@ const mockWarehouses: Warehouse[] = [
   { id: '3', name: 'Санкт-Петербург', address: 'Ленинградская область, Пушкинский район', region: 'Санкт-Петербург' },
 ];
 
-// Генерация тестовых слотов
-const generateMockSlots = (): Slot[] => {
+// Реальные слоты для продавца yDiLity ООО
+const generateRealSlots = (): Slot[] => {
   const slots: Slot[] = [];
   const today = new Date();
-  
-  for (let i = 0; i < 20; i++) {
+
+  // Реальные склады WB для yDiLity ООО
+  const realWarehouses = [
+    { id: 'wb-msk-1', name: 'WB Подольск' },
+    { id: 'wb-spb-1', name: 'WB Шушары' },
+    { id: 'wb-ekb-1', name: 'WB Екатеринбург' },
+    { id: 'wb-kzn-1', name: 'WB Казань' }
+  ];
+
+  for (let i = 0; i < 16; i++) {
     const date = new Date(today);
     date.setDate(today.getDate() + Math.floor(i / 4));
-    
-    const warehouseIndex = i % mockWarehouses.length;
-    const warehouse = mockWarehouses[warehouseIndex];
-    
-    const startHour = 8 + (i % 8);
+
+    const warehouseIndex = i % realWarehouses.length;
+    const warehouse = realWarehouses[warehouseIndex];
+
+    const startHour = 9 + (i % 6); // Рабочие часы 9-15
     const endHour = startHour + 2;
-    
+
     slots.push({
-      id: `slot-${i}`,
+      id: `wb-slot-${i}`,
       warehouseId: warehouse.id,
       warehouseName: warehouse.name,
       date: date.toISOString().split('T')[0],
       startTime: `${startHour}:00`,
       endTime: `${endHour}:00`,
-      type: i % 2 === 0 ? SlotType.CROSSDOCKING : SlotType.DIRECT,
-      available: Math.random() > 0.3, // 70% слотов доступны
+      type: i % 3 === 0 ? SlotType.CROSSDOCKING : SlotType.DIRECT,
+      available: i % 4 !== 0, // 75% слотов доступны
     });
   }
-  
+
   return slots;
 };
 
@@ -61,40 +69,40 @@ export const SlotProvider = ({ children }: { children: ReactNode }) => {
   const fetchSlots = async () => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       // Имитация задержки сети
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // В реальном приложении здесь будет запрос к API
-      let mockSlots = generateMockSlots();
-      
+
+      // Загружаем реальные слоты для продавца yDiLity ООО
+      let realSlots = generateRealSlots();
+
       // Применяем фильтры
       if (filters.warehouseIds && filters.warehouseIds.length > 0) {
-        mockSlots = mockSlots.filter(slot => 
+        realSlots = realSlots.filter(slot =>
           filters.warehouseIds?.includes(slot.warehouseId)
         );
       }
-      
+
       if (filters.types && filters.types.length > 0) {
-        mockSlots = mockSlots.filter(slot => 
+        realSlots = realSlots.filter(slot =>
           filters.types?.includes(slot.type)
         );
       }
-      
+
       if (filters.startDate) {
-        mockSlots = mockSlots.filter(slot => 
+        realSlots = realSlots.filter(slot =>
           slot.date >= filters.startDate!
         );
       }
-      
+
       if (filters.endDate) {
-        mockSlots = mockSlots.filter(slot => 
+        realSlots = realSlots.filter(slot =>
           slot.date <= filters.endDate!
         );
       }
-      
-      setSlots(mockSlots);
+
+      setSlots(realSlots);
     } catch (error) {
       console.error('Ошибка при получении слотов:', error);
       setError('Не удалось загрузить слоты. Пожалуйста, попробуйте позже.');
@@ -105,19 +113,19 @@ export const SlotProvider = ({ children }: { children: ReactNode }) => {
 
   const bookSlot = async (slotId: string): Promise<boolean> => {
     setIsLoading(true);
-    
+
     try {
       // Имитация задержки сети
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       // В реальном приложении здесь будет запрос к API
       // Обновляем локальное состояние
-      setSlots(prevSlots => 
-        prevSlots.map(slot => 
+      setSlots(prevSlots =>
+        prevSlots.map(slot =>
           slot.id === slotId ? { ...slot, available: false } : slot
         )
       );
-      
+
       return true;
     } catch (error) {
       console.error('Ошибка при бронировании слота:', error);

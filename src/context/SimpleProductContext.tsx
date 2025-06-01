@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { Product, ProductFilters, ProductSearchResult, ProductCategory, ProductStatus } from '../types/product';
-import { mockProducts } from '../services/mockData';
+import { realSellerProducts } from '../services/realProductData';
 
 // Базовая структура контекста
 interface SimpleProductContextType {
@@ -28,8 +28,8 @@ const initialFilters: ProductFilters = {
 
 // Провайдер контекста
 export const SimpleProductProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Используем моковые данные напрямую
-  const [products, setProducts] = useState<Product[]>(mockProducts.slice(0, 20));
+  // Используем реальные данные продавца yDiLity ООО
+  const [products, setProducts] = useState<Product[]>(realSellerProducts);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,10 +38,10 @@ export const SimpleProductProvider: React.FC<{ children: ReactNode }> = ({ child
   // Создаем простой объект результатов поиска
   const searchResult: ProductSearchResult = {
     items: products,
-    total: mockProducts.length,
+    total: realSellerProducts.length,
     page: filters.page,
     limit: filters.limit,
-    totalPages: Math.ceil(mockProducts.length / filters.limit)
+    totalPages: Math.ceil(realSellerProducts.length / filters.limit)
   };
 
   // Выбор товара
@@ -82,10 +82,10 @@ export const SimpleProductProvider: React.FC<{ children: ReactNode }> = ({ child
 // Хук для использования контекста
 export const useSimpleProducts = () => {
   const context = useContext(SimpleProductContext);
-  
+
   if (context === undefined) {
     throw new Error('useSimpleProducts must be used within a SimpleProductProvider');
   }
-  
+
   return context;
 };

@@ -77,6 +77,8 @@ export default function ProductsPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isImportingFromWB, setIsImportingFromWB] = useState(false);
+  const [wbSearchQuery, setWbSearchQuery] = useState('');
 
   // Цвета для темной/светлой темы
   const bgColor = useColorModeValue('white', 'gray.800');
@@ -174,6 +176,105 @@ export default function ProductsPage() {
     }
   };
 
+  // Импорт товаров из Wildberries
+  const handleImportFromWB = async () => {
+    if (!wbSearchQuery.trim()) {
+      toast({
+        title: 'Ошибка',
+        description: 'Введите поисковый запрос для импорта товаров из Wildberries',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    setIsImportingFromWB(true);
+    analytics.interaction('button_click', 'import_from_wb', { query: wbSearchQuery });
+
+    try {
+      const response = await fetch(`/api/wb/search?q=${encodeURIComponent(wbSearchQuery)}&limit=20`);
+
+      if (response.status === 429) {
+        toast({
+          title: 'Лимит запросов',
+          description: 'Превышен лимит запросов к Wildberries. Попробуйте позже.',
+          status: 'warning',
+          duration: 5000,
+          isClosable: true,
+        });
+        return;
+      }
+
+      if (response.status === 503) {
+        toast({
+          title: 'Временная блокировка',
+          description: 'Обнаружена блокировка Wildberries. Система переключилась в защитный режим.',
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        });
+        return;
+      }
+
+      if (response.ok) {
+        const data = await response.json();
+        const wbProducts = data.products || [];
+
+        // Конвертируем товары WB в формат нашей системы
+        const convertedProducts = wbProducts.map((wbProduct: any) => ({
+          id: `wb_${wbProduct.id}`,
+          name: wbProduct.name,
+          sku: `WB${wbProduct.id}`,
+          ozonId: wbProduct.id.toString(),
+          brand: wbProduct.brand || 'Неизвестный бренд',
+          category: wbProduct.category || 'Импорт из WB',
+          currentPrice: wbProduct.price,
+          costPrice: wbProduct.price * 0.7, // Примерная себестоимость
+          stock: 0, // Начальный остаток
+          minStock: 5,
+          maxStock: 100,
+          isActive: true,
+          lastUpdated: new Date().toISOString(),
+          source: 'wildberries_import',
+          wbData: {
+            rating: wbProduct.rating,
+            feedbacks: wbProduct.feedbacks,
+            supplier: wbProduct.supplier,
+            originalPrice: wbProduct.originalPrice,
+            discount: wbProduct.discount
+          }
+        }));
+
+        // Здесь можно добавить логику сохранения в базу данных
+        // Пока просто показываем результат
+        toast({
+          title: 'Импорт завершен',
+          description: `Найдено ${convertedProducts.length} товаров из Wildberries. Готовы к добавлению в каталог.`,
+          status: 'success',
+          duration: 5000,
+          isClosable: true,
+        });
+
+        // Можно добавить модальное окно для подтверждения импорта
+        console.log('Импортированные товары:', convertedProducts);
+
+      } else {
+        throw new Error(`HTTP ${response.status}`);
+      }
+    } catch (error) {
+      toast({
+        title: 'Ошибка импорта',
+        description: 'Не удалось импортировать товары из Wildberries',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setIsImportingFromWB(false);
+    }
+  };
+
   // Функция для расчета статистики
   const getProductStats = () => {
     const totalValue = displayProducts.reduce((sum, product) => sum + (product.currentPrice * product.stock), 0);
@@ -215,15 +316,31 @@ export default function ProductsPage() {
             />
           </Tooltip>
 
-          <Tooltip label="Импорт товаров" hasArrow>
+          <Tooltip label="Импорт из Wildberries" hasArrow>
             <IconButton
-              aria-label="Импорт"
+              aria-label="Импорт из WB"
               icon={<Icon as={FaUpload} />}
               variant="outline"
-              colorScheme="green"
-              onClick={() => analytics.interaction('button_click', 'import_products')}
+              colorScheme="purple"
+              onClick={() => {
+                const query = prompt('Введите поисковый запрос для импорта товаров из Wildberries:');
+                if (query) {
+                  setWbSearchQuery(query);
+                  handleImportFromWB();
+                }
+              }}
+              isLoading={isImportingFromWB}
             />
           </Tooltip>
+
+          <Button
+            leftIcon={<Icon as={FaSearch} />}
+            colorScheme="blue"
+            variant="outline"
+            onClick={() => window.open('/real-wb-parsing', '_blank')}
+          >
+            🌐 Реальный парсинг WB
+          </Button>
 
           <Button
             leftIcon={<Icon as={FaPlus} />}

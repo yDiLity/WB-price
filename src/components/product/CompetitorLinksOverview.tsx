@@ -261,14 +261,14 @@ export default function CompetitorLinksOverview({
                 />
               </InputGroup>
               
-              <Select 
-                placeholder="Все маркетплейсы" 
+              <Select
+                placeholder="Все маркетплейсы"
                 maxW="200px"
                 value={selectedMarketplace}
                 onChange={(e) => setSelectedMarketplace(e.target.value)}
               >
-                <option value="ozon">Ozon</option>
                 <option value="wildberries">Wildberries</option>
+                <option value="ozon">Ozon</option>
                 <option value="aliexpress">AliExpress</option>
                 <option value="yandex">Яндекс.Маркет</option>
                 <option value="other">Другие</option>

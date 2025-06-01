@@ -2,19 +2,13 @@ const express = require('express');
 const axios = require('axios');
 const router = express.Router();
 
-// Моковые данные для конкурентов
-const mockCompetitors = [
-  { id: 'comp-1', name: 'МегаМаркет', url: 'https://megamarket.ru' },
-  { id: 'comp-2', name: 'Яндекс.Маркет', url: 'https://market.yandex.ru' },
-  { id: 'comp-3', name: 'Wildberries', url: 'https://wildberries.ru' },
-  { id: 'comp-4', name: 'AliExpress', url: 'https://aliexpress.ru' },
-  { id: 'comp-5', name: 'СберМегаМаркет', url: 'https://sbermegamarket.ru' },
-  { id: 'comp-6', name: 'DNS', url: 'https://dns-shop.ru' },
-  { id: 'comp-7', name: 'М.Видео', url: 'https://mvideo.ru' },
-  { id: 'comp-8', name: 'Эльдорадо', url: 'https://eldorado.ru' },
-  { id: 'comp-9', name: 'Ситилинк', url: 'https://citilink.ru' },
-  { id: 'comp-10', name: 'Lamoda', url: 'https://lamoda.ru' },
-  { id: 'comp-ozon', name: 'Ozon', url: 'https://ozon.ru' }
+// Реальные конкуренты для продавца yDiLity ООО
+const realCompetitors = [
+  { id: 'wb-main', name: 'Wildberries', url: 'https://wildberries.ru' },
+  { id: 'ozon-main', name: 'Ozon', url: 'https://ozon.ru' },
+  { id: 'yandex-market', name: 'Яндекс.Маркет', url: 'https://market.yandex.ru' },
+  { id: 'megamarket', name: 'МегаМаркет', url: 'https://megamarket.ru' },
+  { id: 'aliexpress', name: 'AliExpress', url: 'https://aliexpress.ru' }
 ];
 
 // Моковые данные для товаров по категориям
@@ -82,7 +76,7 @@ router.get('/search', async (req, res) => {
     await new Promise(resolve => setTimeout(resolve, 500));
 
     // Фильтруем конкурентов, если нужно только Ozon
-    let availableCompetitors = [...mockCompetitors];
+    let availableCompetitors = [...realCompetitors];
     if (parseInt(only_ozon) === 1) {
       availableCompetitors = availableCompetitors.filter(
         c => c.name.toLowerCase().includes('ozon') || c.url.toLowerCase().includes('ozon.ru')

@@ -385,7 +385,7 @@ const NAV_ITEMS: Array<NavItem> = [
   },
   {
     label: 'Товары',
-    href: '/products',
+    href: '/wb-products',
     requiresAuth: true,
   },
   {
@@ -404,13 +404,13 @@ const NAV_ITEMS: Array<NavItem> = [
     requiresAuth: true,
   },
   {
-    label: 'Карточки Ozon',
+    label: 'Карточки WB',
     requiresAuth: true,
     children: [
       {
         label: 'Создать карточку',
-        href: '/create-ozon-card',
-        subLabel: 'Создание новой карточки товара для Ozon',
+        href: '/create-wb-card',
+        subLabel: 'Создание новой карточки товара для Wildberries',
       },
     ],
   },

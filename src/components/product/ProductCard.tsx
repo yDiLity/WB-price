@@ -44,6 +44,8 @@ import {
   CompetitorProduct
 } from '../../types/product';
 import { useOzonProducts } from '../../context/OzonProductContext';
+import { useAuth } from '../../context/AuthContext';
+import { usePermissions } from '../../hooks/usePermissions';
 import CompetitorLinkingModal from './CompetitorLinkingModal';
 import CompetitorLinksOverview from './CompetitorLinksOverview';
 import StrategySelectionModal, { PricingStrategy } from './StrategySelectionModal';
@@ -76,7 +78,13 @@ export default function ProductCard({
 }: ProductCardProps) {
   // Получаем функции из контекста
   const { saveCompetitorLinks } = useOzonProducts();
+  const { user } = useAuth();
+  const { hasPermission } = usePermissions();
   const toast = useToast();
+
+  // Проверяем разрешения пользователя
+  const canApplyStrategy = hasPermission('strategies.apply');
+  const canLinkCompetitors = hasPermission('competitors.view');
 
   // Состояние для раскрывающейся панели
   const { isOpen, onToggle } = useDisclosure();
@@ -808,7 +816,7 @@ export default function ProductCard({
                 </Tooltip>
               )}
 
-              {(onEdit || onDelete || onApplyStrategy) && (
+              {(onEdit || onDelete || (onApplyStrategy && canApplyStrategy) || (onLinkCompetitors && canLinkCompetitors)) && (
                 <Menu>
                   <MenuButton
                     as={IconButton}
@@ -839,7 +847,7 @@ export default function ProductCard({
                       </MenuItem>
                     )}
 
-                    {onApplyStrategy && (
+                    {onApplyStrategy && canApplyStrategy && (
                       <MenuItem
                         icon={<InfoIcon />}
                         onClick={handleApplyStrategy}
@@ -854,7 +862,7 @@ export default function ProductCard({
                       </MenuItem>
                     )}
 
-                    {onLinkCompetitors && (
+                    {onLinkCompetitors && canLinkCompetitors && (
                       <MenuItem
                         icon={<LinkIcon />}
                         onClick={handleLinkCompetitors}

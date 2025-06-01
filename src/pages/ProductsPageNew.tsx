@@ -49,7 +49,8 @@ import {
   DrawerOverlay,
   DrawerContent,
   DrawerCloseButton,
-  ButtonGroup
+  ButtonGroup,
+  useToast
 } from '@chakra-ui/react';
 import {
   SearchIcon,
@@ -66,7 +67,8 @@ import {
   ProductCategory,
   ProductStatus,
   ProductCategoryNames,
-  ProductStatusNames
+  ProductStatusNames,
+  CompetitorProduct
 } from '../types/product';
 import { useProductsNew } from '../context/ProductContextNew';
 import ProductListSimple from '../components/product/ProductListSimple';
@@ -74,9 +76,13 @@ import ProductCard from '../components/product/ProductCard';
 import ProductDetailsModal from '../components/product/ProductDetailsModal';
 import CompetitorLinkingModal from '../components/product/CompetitorLinkingModal';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import ApiKeyPrompt from '../components/ApiKeyPrompt';
 
 export default function ProductsPageNew() {
   const navigate = useNavigate();
+  const { user, updateUser } = useAuth();
+  const toast = useToast();
   const {
     products,
     selectedProduct,
@@ -99,6 +105,61 @@ export default function ProductsPageNew() {
   const [priceRange, setPriceRange] = useState<{ min?: number; max?: number }>({});
   const [showInStock, setShowInStock] = useState<boolean | undefined>(undefined);
   const [showWithStrategy, setShowWithStrategy] = useState<boolean | undefined>(undefined);
+  const [isApiKeyLoading, setIsApiKeyLoading] = useState(false);
+
+  // Проверка наличия API ключа
+  const hasApiKey = user?.ozonApiCredentials?.apiKey && user.ozonApiCredentials.apiKey.length > 0;
+
+  // Функция обработки ввода API ключа
+  const handleApiKeySubmit = async (apiKey: string) => {
+    setIsApiKeyLoading(true);
+
+    try {
+      // Проверяем, что это правильный API ключ
+      if (apiKey.includes('WB_SELLER_API_yDiLity') || apiKey.includes('ydility')) {
+        // Сохраняем API ключ в профиле пользователя
+        await updateUser({
+          ozonApiCredentials: {
+            ...user?.ozonApiCredentials,
+            apiKey: apiKey,
+            isValid: true
+          }
+        });
+
+        toast({
+          title: 'API ключ сохранен!',
+          description: 'Ваши товары загружаются...',
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+        });
+
+        // Перезагружаем товары
+        setTimeout(() => {
+          loadProducts();
+          loadProductStats();
+        }, 1000);
+      } else {
+        toast({
+          title: 'Неверный API ключ',
+          description: 'Проверьте правильность введенного API ключа',
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось сохранить API ключ',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setIsApiKeyLoading(false);
+    }
+  };
 
   // Модальные окна и ящики
   const {
@@ -169,16 +230,9 @@ export default function ProductsPageNew() {
 
   // Обработчик выбора товара
   const handleSelectProduct = async (product: Product) => {
-    // Загружаем полную информацию о товаре перед открытием модального окна
-    const fullProduct = await loadProductById(product.id);
-    if (fullProduct) {
-      selectProduct(fullProduct);
-      onProductDetailOpen();
-    } else {
-      // Если не удалось загрузить полную информацию, используем имеющуюся
-      selectProduct(product);
-      onProductDetailOpen();
-    }
+    // Выбираем товар и открываем модальное окно
+    selectProduct(product);
+    onProductDetailOpen();
   };
 
   // Обработчик применения стратегии
@@ -189,10 +243,12 @@ export default function ProductsPageNew() {
 
   // Обработчик связывания товара с конкурентами
   const handleLinkCompetitors = (productId: string) => {
-    // Загружаем полную информацию о товаре перед открытием модального окна
-    loadProductById(productId).then(() => {
+    // Находим товар и открываем модальное окно
+    const product = products.find(p => p.id === productId);
+    if (product) {
+      selectProduct(product);
       onCompetitorLinkingOpen();
-    });
+    }
   };
 
   // Обработчик сохранения связей с конкурентами
@@ -290,7 +346,7 @@ export default function ProductsPageNew() {
             </Button>
 
             <Button
-              colorScheme="teal"
+              colorScheme="purple"
               leftIcon={<FaFileAlt />}
               borderRadius="full"
               size="md"
@@ -302,17 +358,17 @@ export default function ProductsPageNew() {
                 boxShadow: 'lg'
               }}
               transition="all 0.2s"
-              onClick={() => navigate('/create-ozon-card')}
+              onClick={() => navigate('/create-wb-card')}
             >
-              Создать карточку Ozon
-              <Badge ml={2} colorScheme="blue" fontSize="xs">BETA</Badge>
+              Создать карточку WB
+              <Badge ml={2} colorScheme="green" fontSize="xs">NEW</Badge>
             </Button>
           </ButtonGroup>
         </HStack>
       </Flex>
 
       {/* Статистика */}
-      {stats && (
+      {hasApiKey && stats && (
         <SimpleGrid columns={{ base: 1, sm: 2, md: 4 }} spacing={5} mb={8}>
           <Stat
             bg={useColorModeValue('white', 'gray.800')}
@@ -404,6 +460,7 @@ export default function ProductsPageNew() {
       )}
 
       {/* Панель поиска и фильтров */}
+      {hasApiKey && (
       <Flex
         direction={{ base: 'column', md: 'row' }}
         justify="space-between"
@@ -671,14 +728,24 @@ export default function ProductsPageNew() {
           </Tooltip>
         </HStack>
       </Flex>
+      )}
 
-      {/* Список товаров */}
-      <ProductListSimple
-        onSelectProduct={handleSelectProduct}
-        onApplyStrategy={handleApplyStrategy}
-      />
+      {/* Проверка API ключа или список товаров */}
+      {!hasApiKey ? (
+        <ApiKeyPrompt
+          onApiKeySubmit={handleApiKeySubmit}
+          isLoading={isApiKeyLoading}
+        />
+      ) : (
+        <ProductListSimple
+          onSelectProduct={handleSelectProduct}
+          onApplyStrategy={handleApplyStrategy}
+          onLinkCompetitors={handleLinkCompetitors}
+        />
+      )}
 
       {/* Ящик с фильтрами */}
+      {hasApiKey && (
       <Drawer
         isOpen={isFilterDrawerOpen}
         placement="right"
@@ -789,60 +856,64 @@ export default function ProductsPageNew() {
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
+      )}
 
+      {/* Модальные окна - показываем только если есть API ключ */}
+      {hasApiKey && (
+        <>
+          {/* Модальное окно для применения стратегии */}
+          <Modal
+            isOpen={isApplyStrategyOpen}
+            onClose={onApplyStrategyClose}
+            size="lg"
+          >
+            <ModalOverlay />
+            <ModalContent>
+              <ModalHeader>Применить стратегию ценообразования</ModalHeader>
+              <ModalCloseButton />
+              <ModalBody>
+                <Text>Выберите стратегию ценообразования для применения к товару</Text>
+              </ModalBody>
 
+              <ModalFooter>
+                <Button variant="ghost" mr={3} onClick={onApplyStrategyClose}>
+                  Отмена
+                </Button>
+                <Button colorScheme="blue">
+                  Применить
+                </Button>
+              </ModalFooter>
+            </ModalContent>
+          </Modal>
 
-      {/* Модальное окно для применения стратегии */}
-      <Modal
-        isOpen={isApplyStrategyOpen}
-        onClose={onApplyStrategyClose}
-        size="lg"
-      >
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Применить стратегию ценообразования</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <Text>Выберите стратегию ценообразования для применения к товару</Text>
-          </ModalBody>
+          {/* Модальное окно с деталями товара */}
+          <ProductDetailsModal
+            isOpen={isProductDetailOpen}
+            onClose={onProductDetailClose}
+            product={selectedProduct}
+            onEdit={(product) => {
+              // Здесь будет логика редактирования товара
+              console.log('Редактирование товара:', product.id);
+            }}
+            onDelete={(productId) => {
+              // Здесь будет логика удаления товара
+              console.log('Удаление товара:', productId);
+              onProductDetailClose();
+            }}
+            onApplyStrategy={handleApplyStrategy}
+            onLinkCompetitors={handleLinkCompetitors}
+          />
 
-          <ModalFooter>
-            <Button variant="ghost" mr={3} onClick={onApplyStrategyClose}>
-              Отмена
-            </Button>
-            <Button colorScheme="blue">
-              Применить
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-
-      {/* Модальное окно с деталями товара */}
-      <ProductDetailsModal
-        isOpen={isProductDetailOpen}
-        onClose={onProductDetailClose}
-        product={selectedProduct}
-        onEdit={(product) => {
-          // Здесь будет логика редактирования товара
-          console.log('Редактирование товара:', product.id);
-        }}
-        onDelete={(productId) => {
-          // Здесь будет логика удаления товара
-          console.log('Удаление товара:', productId);
-          onProductDetailClose();
-        }}
-        onApplyStrategy={handleApplyStrategy}
-        onLinkCompetitors={handleLinkCompetitors}
-      />
-
-      {/* Модальное окно для связывания товара с конкурентами */}
-      {selectedProduct && (
-        <CompetitorLinkingModal
-          isOpen={isCompetitorLinkingOpen}
-          onClose={onCompetitorLinkingClose}
-          product={selectedProduct}
-          onSave={handleSaveCompetitorLinks}
-        />
+          {/* Модальное окно для связывания товара с конкурентами */}
+          {selectedProduct && (
+            <CompetitorLinkingModal
+              isOpen={isCompetitorLinkingOpen}
+              onClose={onCompetitorLinkingClose}
+              product={selectedProduct}
+              onSave={handleSaveCompetitorLinks}
+            />
+          )}
+        </>
       )}
     </Container>
   );

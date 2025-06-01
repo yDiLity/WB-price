@@ -1,7 +1,15 @@
 import { CompetitorProduct } from '../types/product';
-import { mockCompetitors } from './mockData';
 import axios from 'axios';
 import { securityService } from './securityService';
+
+// Реальные конкуренты на маркетплейсах
+const realCompetitors = [
+  { id: 'wb', name: 'Wildberries', url: 'https://wildberries.ru' },
+  { id: 'ozon', name: 'Ozon', url: 'https://ozon.ru' },
+  { id: 'yandex', name: 'Яндекс.Маркет', url: 'https://market.yandex.ru' },
+  { id: 'megamarket', name: 'МегаМаркет', url: 'https://megamarket.ru' },
+  { id: 'aliexpress', name: 'AliExpress', url: 'https://aliexpress.ru' }
+];
 
 // Интерфейс для результатов поиска товаров на Ozon
 interface OzonSearchResult {
@@ -42,113 +50,52 @@ class CompetitorSearchService {
     showOnlyOzon: boolean = false,
     productName: string = ''
   ): Promise<CompetitorProduct[]> {
-    console.log('Поиск конкурентов:', { searchTerm, productId, currentPrice, showOnlyOzon, productName, useMockData: this.useMockData });
+    console.log('🌐 РЕАЛЬНЫЙ поиск конкурентов на Wildberries:', { searchTerm, productId, currentPrice, showOnlyOzon, productName });
 
-    if (this.useMockData) {
-      const results = await this.getMockCompetitors(searchTerm, currentPrice, showOnlyOzon, productName);
-      console.log('Моковые результаты:', results);
-      return results;
-    } else {
-      try {
-        console.log('🛡️ Безопасный поиск конкурентов через securityService')
-
-        // Формируем URL с параметрами
-        const params = new URLSearchParams({
-          query: searchTerm,
-          limit: '10',
-          only_ozon: showOnlyOzon ? '1' : '0',
-          product_name: productName
-        });
-
-        const url = `${this.apiUrl}?${params.toString()}`;
-
-        // Запрос к реальному API через безопасный сервис
-        const response = await securityService.secureRequest(url);
-
-        if (!response.ok) {
-          throw new Error(`Ошибка API: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        // Преобразуем результаты в формат CompetitorProduct
-        return data.products.map((product: any) => ({
-          id: `wb-${product.id}`,
-          competitorId: product.seller.id,
-          competitorName: product.seller.name || 'Wildberries',
-          productTitle: product.title,
-          price: product.price,
-          url: product.url || `https://wildberries.ru/catalog/${product.id}/detail.aspx`,
-          lastUpdated: new Date(),
-          isActive: true,
-          imageUrl: product.image_url
-        }));
-      } catch (error) {
-        console.error('Ошибка при поиске конкурентов:', error);
-        // В случае ошибки возвращаем моковые данные
-        return this.getMockCompetitors(searchTerm, currentPrice, false);
-      }
-    }
+    // ВСЕГДА используем реальные данные с Wildberries
+    return this.getRealCompetitors(searchTerm, currentPrice, showOnlyOzon, productName);
   }
 
-  // Получение моковых данных о конкурентах
-  private getMockCompetitors(
+  // РЕАЛЬНЫЙ поиск конкурентов через Wildberries API
+  private async getRealCompetitors(
     searchTerm: string,
     currentPrice: number,
     showOnlyOzon: boolean = false,
     productName: string = ''
   ): Promise<CompetitorProduct[]> {
-    return new Promise(resolve => {
-      // Имитация задержки API
-      setTimeout(() => {
-        // Генерация случайных результатов поиска
-        const results: CompetitorProduct[] = [];
+    try {
+      console.log('🌐 Ищем РЕАЛЬНЫХ конкурентов на Wildberries:', searchTerm);
 
-        // Фильтруем конкурентов, если нужно только Ozon
-        let availableCompetitors = [...mockCompetitors];
-        if (showOnlyOzon) {
-          availableCompetitors = availableCompetitors.filter(
-            c => c.name.toLowerCase().includes('ozon') || c.url.toLowerCase().includes('ozon.ru')
-          );
-        }
+      // Используем наш серверный прокси для поиска конкурентов
+      const response = await fetch(`/api/wb/search?q=${encodeURIComponent(searchTerm)}`);
 
-        // Если после фильтрации не осталось конкурентов, добавляем Ozon
-        if (availableCompetitors.length === 0) {
-          availableCompetitors.push({
-            id: 'comp-ozon',
-            name: 'Ozon',
-            url: 'https://ozon.ru'
-          });
-        }
+      if (!response.ok) {
+        throw new Error(`Ошибка поиска конкурентов: ${response.status}`);
+      }
 
-        // Добавляем 5-10 случайных конкурентов
-        const numberOfResults = Math.floor(Math.random() * 6) + 5;
+      const wbProducts = await response.json();
 
-        for (let i = 0; i < numberOfResults; i++) {
-          const competitor = availableCompetitors[Math.floor(Math.random() * availableCompetitors.length)];
-          const price = Math.round(currentPrice * (0.85 + Math.random() * 0.3));
+      // Конвертируем товары WB в формат конкурентов
+      const competitors: CompetitorProduct[] = wbProducts.slice(0, 10).map((product: any) => ({
+        id: `wb-comp-${product.id}`,
+        competitorId: `wb-seller-${product.supplierId || product.id}`,
+        competitorName: product.supplier || 'WB Продавец',
+        productId: product.id.toString(),
+        productTitle: product.name,
+        price: Math.round(product.price * 100), // Конвертируем в копейки
+        url: `https://www.wildberries.ru/catalog/${product.id}/detail.aspx`,
+        lastUpdated: new Date(),
+        isActive: true,
+        source: 'REAL_WILDBERRIES' // Маркер реальных данных
+      }));
 
-          // Создаем объект конкурента
-          const competitorProduct = {
-            id: `comp-${Date.now()}-${i}`,
-            competitorId: competitor.id,
-            competitorName: competitor.name,
-            productTitle: `${searchTerm} (${competitor.name})`,
-            price,
-            url: competitor.url + '/product/' + Math.floor(Math.random() * 1000000),
-            lastUpdated: new Date(),
-            isActive: true,
-            imageUrl: `https://via.placeholder.com/150?text=${encodeURIComponent(searchTerm.substring(0, 10))}`
-          };
+      console.log(`✅ Найдено ${competitors.length} РЕАЛЬНЫХ конкурентов на WB`);
+      return competitors;
 
-          console.log('Добавляем конкурента:', competitorProduct);
-
-          results.push(competitorProduct);
-        }
-
-        resolve(results);
-      }, 1000);
-    });
+    } catch (error) {
+      console.error('🚫 Ошибка поиска реальных конкурентов:', error);
+      throw new Error('Не удалось найти конкурентов на Wildberries');
+    }
   }
 }
 

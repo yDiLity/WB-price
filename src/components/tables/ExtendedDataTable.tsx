@@ -32,7 +32,6 @@ import { FaEdit, FaTrash, FaEye, FaArrowUp, FaArrowDown, FaDownload, FaSync } fr
 import * as XLSX from 'xlsx'
 import { saveAs } from 'file-saver'
 import { wildberriesApi } from '../../services/wildberriesApi'
-import { demoWildberriesApi } from '../../services/demoWildberriesApi'
 
 // 📋 WB Data Structure - Adapted for Wildberries
 interface ExtendedDataRow {
@@ -151,13 +150,22 @@ const ExtendedDataTable: React.FC = () => {
       const isDemoMode = localStorage.getItem('wb_demo_mode') === 'true'
 
       if (isDemoMode) {
-        // Демо-режим: обновляем моковые данные
-        setTimeout(() => {
-          setData(generateMockData())
+        // Реальные данные продавца yDiLity ООО
+        setTimeout(async () => {
+          const { realSellerProducts } = await import('../../services/realProductData');
+          const realData = realSellerProducts.map(product => ({
+            id: product.id,
+            name: product.title,
+            price: product.price.current,
+            stock: product.stock.available,
+            category: product.subcategory || product.category,
+            seller: product.seller || 'yDiLity ООО'
+          }));
+          setData(realData)
           setIsUpdating(false)
           toast({
-            title: 'Данные обновлены (Демо)',
-            description: 'Тестовые данные успешно обновлены',
+            title: 'Данные обновлены',
+            description: 'Реальные данные продавца yDiLity ООО загружены',
             status: 'success',
             duration: 2000,
             isClosable: true,

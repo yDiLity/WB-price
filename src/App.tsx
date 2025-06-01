@@ -14,7 +14,8 @@ import { ProductProviderNew } from './context/ProductContextNew'
 import { OzonProductProvider } from './context/OzonProductContext'
 import { SimpleProductProvider } from './context/SimpleProductContext'
 import { SlotProvider } from './context/SlotContext'
-import OzonProductsPage from './pages/OzonProductsPage'
+import WBProductsPage from './pages/OzonProductsPage'
+import ProductsPageNew from './pages/ProductsPageNew'
 import OzonCardPage from './pages/OzonCardPage'
 import CreateOzonCardPage from './pages/CreateOzonCardPage'
 import OzonApiSettingsPage from './pages/OzonApiSettingsPage'
@@ -50,9 +51,14 @@ import ProfilePage from './pages/ProfilePage'
 import ExtendedDataPage from './pages/ExtendedDataPage'
 import DevToolsNotification from './components/DevToolsNotification'
 import BordersDemo from './components/demo/BordersDemo'
+import WildberriesApiTestPage from './pages/WildberriesApiTestPage'
+import WBApiTestPage from './pages/WBApiTestPage'
+import RealWBParsingPage from './pages/RealWBParsingPage'
+import AutomationPage from './pages/AutomationPage'
 
 import HelpSystem from './components/help/HelpSystem'
 import PerformanceMonitor from './components/PerformanceMonitor'
+import ProductionMonitor from './components/production/ProductionMonitor'
 
 // Компоненты страниц
 import HomePage from './pages/HomePage'
@@ -285,12 +291,12 @@ const Navbar = () => {
               >
                 Изменение в цене
               </Link>
-              <Link to="/create-ozon-card" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent font-medium transition-colors text-sm"
+              <Link to="/create-wb-card" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent font-medium transition-colors text-sm"
                 style={{ color: textColor, borderBottomColor: 'transparent', position: 'relative' }}
                 onMouseOver={(e) => { e.currentTarget.style.color = hoverTextColor; e.currentTarget.style.borderBottomColor = hoverTextColor; }}
                 onMouseOut={(e) => { e.currentTarget.style.color = textColor; e.currentTarget.style.borderBottomColor = 'transparent'; }}
               >
-                Создать карточку Ozon
+                Создать карточку WB
                 <span style={{
                   position: 'absolute',
                   top: '-8px',
@@ -311,6 +317,7 @@ const Navbar = () => {
                 setIsOpen={setIsManagementOpen}
                 items={[
                   { label: 'Стратегии', to: '/strategies' },
+                  { label: '🤖 Автоматизация 24/7', to: '/automation' },
                   { label: '🔍 Поиск конкурентов', to: '/competitor-search' },
                   { label: '🎯 Автоматическое регулирование', to: '/auto-price-regulation' },
                   { label: 'Логистика', to: '/logistics' },
@@ -333,11 +340,13 @@ const Navbar = () => {
                   { label: 'API WB', to: '/wb-api-settings' },
                   { label: 'Пользователи', to: '/users' },
                   { label: 'Мониторинг', to: '/monitoring' },
+                  { label: '🚀 Продакшн мониторинг', to: '/production-monitor' },
                   { label: '📊 Метрики', to: '/metrics' },
                   { label: '🧠 Логический оптимизатор', to: '/logical-optimizer' },
                   { label: '🤖 ML-Аналитика', to: '/ml-analytics' },
                   { label: '🛡️ Защита WB', to: '/wb-protection' },
                   { label: '🕷️ Парсинг WB', to: '/wb-parsing' },
+                  { label: '🌐 РЕАЛЬНЫЙ парсинг WB', to: '/real-wb-parsing' },
                   { label: '🧠 Аналитика банов', to: '/ban-analytics' },
                   { label: '🔍 Декодер артикулов', to: '/code-decoder' },
                   { label: 'Интеграция', to: '/integration-guide' },
@@ -448,12 +457,12 @@ const Navbar = () => {
             >
               Изменение в цене
             </Link>
-            <Link to="/create-ozon-card" className="block py-2 px-3 rounded-md text-sm font-medium transition-colors"
+            <Link to="/create-wb-card" className="block py-2 px-3 rounded-md text-sm font-medium transition-colors"
               style={{ color: textColor, position: 'relative' }}
               onMouseOver={(e) => { e.currentTarget.style.color = hoverTextColor; e.currentTarget.style.backgroundColor = hoverBg; }}
               onMouseOut={(e) => { e.currentTarget.style.color = textColor; e.currentTarget.style.backgroundColor = 'transparent'; }}
             >
-              Создать карточку Ozon
+              Создать карточку WB
               <span style={{
                 position: 'absolute',
                 top: '5px',
@@ -777,9 +786,10 @@ function App() {
                     <Routes>
                       <Route path="/" element={<Home />} />
                       <Route path="/dashboard" element={<DashboardPage />} />
-                      <Route path="/wb-products" element={<OzonProductsPage />} />
+                      <Route path="/wb-products" element={<WBProductsPage />} />
                       <Route path="/wb-api-settings" element={<OzonApiSettingsPage />} />
                       <Route path="/strategies" element={<StrategiesPage />} />
+                      <Route path="/automation" element={<AutomationPage />} />
                       <Route path="/alerts" element={<AlertsPage />} />
                       <Route path="/settings" element={<SettingsPage />} />
                       <Route path="/integration-guide" element={<IntegrationGuidePage />} />
@@ -788,9 +798,11 @@ function App() {
                       <Route path="/ml-analytics" element={<MLAnalyticsPage />} />
                       <Route path="/wb-protection" element={<WBProtectionPage />} />
                       <Route path="/wb-parsing" element={<WBParsingPage />} />
+                      <Route path="/real-wb-parsing" element={<RealWBParsingPage />} />
                       <Route path="/ban-analytics" element={<BanAnalyticsPage />} />
                       <Route path="/users" element={<ConnectedUsersPage />} />
                       <Route path="/monitoring" element={<MonitoringPage />} />
+                      <Route path="/production-monitor" element={<ProductionMonitor />} />
                       <Route path="/metrics" element={<MetricsPage />} />
                       <Route path="/ai-analysis" element={<AIAnalysisPage />} />
                       <Route path="/analysis-history" element={<AnalysisHistoryPage />} />
@@ -812,6 +824,8 @@ function App() {
                       <Route path="/about" element={<About />} />
                       <Route path="/profile" element={<ProfilePage />} />
                       <Route path="/borders-demo" element={<BordersDemo />} />
+                      <Route path="/wb-api-test" element={<WildberriesApiTestPage />} />
+                      <Route path="/wb-api-test-new" element={<WBApiTestPage />} />
                       <Route path="/login" element={<LoginForm />} />
                       <Route path="/register" element={<RegisterForm />} />
                     </Routes>

@@ -165,19 +165,19 @@ export default function ProductDetails({
               variant="outline"
               size="md"
             >
-              Карточка Ozon
+              Карточка WB
               <Badge ml={2} colorScheme="blue" fontSize="xs">BETA</Badge>
             </MenuButton>
             <MenuList>
               <MenuItem
                 icon={<ExternalLinkIcon />}
-                onClick={() => navigate(`/ozon-card/${product.id}`)}
+                onClick={() => navigate(`/wb-card/${product.id}`)}
               >
                 Просмотр карточки
               </MenuItem>
               <MenuItem
                 icon={<AddIcon />}
-                onClick={() => navigate(`/create-ozon-card?productId=${product.id}`)}
+                onClick={() => navigate(`/create-wb-card?productId=${product.id}`)}
               >
                 Создать новую карточку
               </MenuItem>

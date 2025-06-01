@@ -848,11 +848,11 @@ export default function CompetitorLinkingModal({
                           </FormControl>
 
                           <FormControl display="flex" alignItems="center" width="auto">
-                            <FormLabel htmlFor="only-ozon" mb="0" whiteSpace="nowrap">
-                              Только Ozon
+                            <FormLabel htmlFor="only-wb" mb="0" whiteSpace="nowrap">
+                              Только WB
                             </FormLabel>
                             <Switch
-                              id="only-ozon"
+                              id="only-wb"
                               isChecked={showOnlyOzon}
                               onChange={(e) => setShowOnlyOzon(e.target.checked)}
                               colorScheme="blue"

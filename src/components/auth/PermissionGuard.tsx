@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import { hasPermission, hasRole, UserRole } from '../../types/auth';
 import { Alert, AlertIcon, AlertTitle, AlertDescription } from '@chakra-ui/react';
 

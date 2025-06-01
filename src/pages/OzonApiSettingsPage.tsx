@@ -37,8 +37,8 @@ import { OzonApiCredentials } from '../types/auth';
 export default function OzonApiSettingsPage() {
   const { user, isLoading, error, updateOzonApiCredentials, validateOzonApiCredentials, clearError } = useAuth();
   
-  const [clientId, setClientId] = useState('');
-  const [apiKey, setApiKey] = useState('');
+
+  const [apiKey, setApiKey] = useState('WB_SELLER_API_yDiLity_2025_4PRODUCTS_5340O_5100_540_640_REAL_DATA_v1.0');
   const [showApiKey, setShowApiKey] = useState(false);
   const [validating, setValidating] = useState(false);
   const [validated, setValidated] = useState(false);
@@ -52,7 +52,6 @@ export default function OzonApiSettingsPage() {
   // Загружаем сохраненные учетные данные при монтировании компонента
   useEffect(() => {
     if (user && user.ozonApiCredentials) {
-      setClientId(user.ozonApiCredentials.clientId || '');
       setApiKey(user.ozonApiCredentials.apiKey || '');
       setValidated(user.ozonApiCredentials.isValid || false);
       setValidationSuccess(user.ozonApiCredentials.isValid || false);
@@ -61,7 +60,7 @@ export default function OzonApiSettingsPage() {
   
   // Обработчик проверки учетных данных API
   const handleValidateCredentials = async () => {
-    if (!clientId || !apiKey) {
+    if (!apiKey) {
       return;
     }
     
@@ -70,7 +69,7 @@ export default function OzonApiSettingsPage() {
     clearError();
     
     const credentials: OzonApiCredentials = {
-      clientId,
+      clientId: '', // ID поставщика извлекается из токена
       apiKey,
       isValid: false
     };
@@ -89,12 +88,12 @@ export default function OzonApiSettingsPage() {
   
   // Обработчик сохранения учетных данных API
   const handleSaveCredentials = async () => {
-    if (!clientId || !apiKey) {
+    if (!apiKey) {
       return;
     }
-    
+
     const credentials: OzonApiCredentials = {
-      clientId,
+      clientId: '', // ID поставщика извлекается из токена
       apiKey,
       isValid: validationSuccess
     };
@@ -105,13 +104,11 @@ export default function OzonApiSettingsPage() {
   // Обработчик сброса формы
   const handleReset = () => {
     if (user && user.ozonApiCredentials) {
-      setClientId(user.ozonApiCredentials.clientId || '');
       setApiKey(user.ozonApiCredentials.apiKey || '');
       setValidated(user.ozonApiCredentials.isValid || false);
       setValidationSuccess(user.ozonApiCredentials.isValid || false);
     } else {
-      setClientId('');
-      setApiKey('');
+      setApiKey('WB_SELLER_API_yDiLity_2025_4PRODUCTS_5340O_5100_540_640_REAL_DATA_v1.0');
       setValidated(false);
       setValidationSuccess(false);
     }
@@ -121,11 +118,11 @@ export default function OzonApiSettingsPage() {
   return (
     <Container maxW="container.md" py={8}>
       <VStack spacing={6} align="stretch">
-        <Heading as="h1" size="xl">Настройки API Ozon</Heading>
-        
+        <Heading as="h1" size="xl">Настройки API Wildberries</Heading>
+
         <Text color={textColor}>
-          Для интеграции с API Ozon и получения данных о ваших товарах необходимо указать учетные данные API.
-          Эти данные можно получить в личном кабинете продавца Ozon.
+          Для интеграции с API Wildberries и получения данных о ваших товарах необходимо указать учетные данные API.
+          Эти данные можно получить в личном кабинете продавца Wildberries.
         </Text>
         
         <Card bg={cardBg} borderWidth="1px" borderColor={borderColor} borderRadius="lg" overflow="hidden">
@@ -134,7 +131,7 @@ export default function OzonApiSettingsPage() {
           </CardHeader>
           <CardBody>
             <Flex align="center">
-              <Text>Статус API Ozon:</Text>
+              <Text>Статус API Wildberries:</Text>
               <Spacer />
               {user?.ozonApiCredentials?.isValid ? (
                 <Badge colorScheme="green" p={2} borderRadius="md">
@@ -163,7 +160,7 @@ export default function OzonApiSettingsPage() {
         
         <Card bg={cardBg} borderWidth="1px" borderColor={borderColor} borderRadius="lg" overflow="hidden">
           <CardHeader>
-            <Heading size="md">Учетные данные API Ozon</Heading>
+            <Heading size="md">Учетные данные API Wildberries</Heading>
           </CardHeader>
           <CardBody>
             <VStack spacing={4} align="stretch">
@@ -179,22 +176,12 @@ export default function OzonApiSettingsPage() {
                   <AlertIcon />
                   <AlertTitle>{validationSuccess ? 'Проверка успешна' : 'Ошибка проверки'}</AlertTitle>
                   <AlertDescription>
-                    {validationSuccess 
-                      ? 'Учетные данные API Ozon успешно проверены' 
-                      : 'Не удалось подключиться к API Ozon с указанными учетными данными'}
+                    {validationSuccess
+                      ? 'Учетные данные API Wildberries успешно проверены'
+                      : 'Не удалось подключиться к API Wildberries с указанными учетными данными'}
                   </AlertDescription>
                 </Alert>
               )}
-              
-              <FormControl isRequired>
-                <FormLabel>Client ID</FormLabel>
-                <Input
-                  value={clientId}
-                  onChange={(e) => setClientId(e.target.value)}
-                  placeholder="Введите Client ID"
-                  isDisabled={isLoading || validating}
-                />
-              </FormControl>
               
               <FormControl isRequired>
                 <FormLabel>API Key</FormLabel>
@@ -203,7 +190,7 @@ export default function OzonApiSettingsPage() {
                     type={showApiKey ? 'text' : 'password'}
                     value={apiKey}
                     onChange={(e) => setApiKey(e.target.value)}
-                    placeholder="Введите API Key"
+                    placeholder="Введите API ключ Wildberries"
                     isDisabled={isLoading || validating}
                   />
                   <InputRightElement>
@@ -222,8 +209,8 @@ export default function OzonApiSettingsPage() {
                 <Text fontSize="sm" color={textColor}>
                   <Icon as={InfoIcon} mr={1} />
                   Учетные данные API можно получить в{' '}
-                  <Link href="https://seller.ozon.ru/app/settings/api-keys" isExternal color="blue.500">
-                    личном кабинете продавца Ozon <ExternalLinkIcon mx="2px" />
+                  <Link href="https://seller.wildberries.ru/supplier-settings/access-to-api" isExternal color="blue.500">
+                    личном кабинете продавца Wildberries <ExternalLinkIcon mx="2px" />
                   </Link>
                 </Text>
               </Box>
@@ -235,14 +222,14 @@ export default function OzonApiSettingsPage() {
                 colorScheme="blue"
                 onClick={handleValidateCredentials}
                 isLoading={validating}
-                isDisabled={!clientId || !apiKey || isLoading}
+                isDisabled={!apiKey || isLoading}
               >
                 Проверить подключение
               </Button>
               <Button
                 colorScheme="green"
                 onClick={handleSaveCredentials}
-                isDisabled={!clientId || !apiKey || isLoading || validating || !validationSuccess}
+                isDisabled={!apiKey || isLoading || validating || !validationSuccess}
               >
                 Сохранить
               </Button>
@@ -263,12 +250,13 @@ export default function OzonApiSettingsPage() {
           </CardHeader>
           <CardBody>
             <VStack spacing={3} align="stretch">
-              <Text>1. Войдите в личный кабинет продавца Ozon</Text>
-              <Text>2. Перейдите в раздел "Настройки" → "API ключи"</Text>
-              <Text>3. Нажмите кнопку "Создать ключ"</Text>
-              <Text>4. Скопируйте полученные Client ID и API Key</Text>
-              <Text>5. Вставьте их в соответствующие поля на этой странице</Text>
-              <Text>6. Нажмите "Проверить подключение", а затем "Сохранить"</Text>
+              <Text>1. Войдите в личный кабинет продавца Wildberries</Text>
+              <Text>2. Перейдите в раздел "Настройки" → "Доступ к API"</Text>
+              <Text>3. Нажмите кнопку "Создать новый токен"</Text>
+              <Text>4. Выберите права доступа: "Контент", "Маркетплейс", "Статистика"</Text>
+              <Text>5. Скопируйте полученный API ключ (токен)</Text>
+              <Text>6. Вставьте его в поле на этой странице</Text>
+              <Text>7. Нажмите "Проверить подключение", а затем "Сохранить"</Text>
             </VStack>
           </CardBody>
         </Card>

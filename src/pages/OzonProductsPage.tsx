@@ -80,9 +80,8 @@ import { AutomationToggle } from '../components/automation/AutomationToggle';
 import CompetitorPricesTable from '../components/product/CompetitorPricesTable';
 import PriceHistoryChart from '../components/product/PriceHistoryChart';
 import PricingRecommendations from '../components/product/PricingRecommendations';
-import { MockDataDisplay } from '../components/product/MockDataDisplay';
 
-export default function OzonProductsPage() {
+export default function WBProductsPage() {
   const {
     products,
     selectedProduct,
@@ -318,11 +317,11 @@ export default function OzonProductsPage() {
 
   // Обработчик перехода к настройкам API
   const handleGoToApiSettings = () => {
-    navigate('/ozon-api-settings');
+    navigate('/wb-api-settings');
   };
 
   // Если API не настроен, показываем предупреждение, но не блокируем доступ к странице
-  const apiWarning = !isOzonApiConfigured && (
+  const apiWarning = !isWBApiConfigured && (
     <Alert
       status="warning"
       variant="subtle"
@@ -336,10 +335,10 @@ export default function OzonProductsPage() {
     >
       <AlertIcon boxSize="40px" mr={0} />
       <AlertTitle mt={4} mb={1} fontSize="lg">
-        API Ozon не настроено
+        API Wildberries не настроено
       </AlertTitle>
       <AlertDescription maxWidth="md">
-        Для отображения ваших товаров необходимо настроить подключение к API Ozon.
+        Для отображения ваших товаров необходимо настроить подключение к API Wildberries.
         Перейдите в настройки API, чтобы указать учетные данные.
       </AlertDescription>
       <Button
@@ -374,7 +373,7 @@ export default function OzonProductsPage() {
       >
         <VStack align="flex-start" spacing={1}>
           <Heading as="h1" size="xl">Мои товары</Heading>
-          <Text color="gray.500" fontSize="md">Управление товарами, размещенными на маркетплейсе Ozon</Text>
+          <Text color="gray.500" fontSize="md">Управление товарами, размещенными на маркетплейсе Wildberries</Text>
         </VStack>
 
         <HStack spacing={2}>
@@ -384,7 +383,7 @@ export default function OzonProductsPage() {
             <Switch
               isChecked={useApiMode}
               onChange={handleToggleApiMode}
-              isDisabled={!isOzonApiConfigured}
+              isDisabled={!isWBApiConfigured}
               colorScheme="blue"
             />
           </Flex>
@@ -417,8 +416,8 @@ export default function OzonProductsPage() {
         </HStack>
       </Flex>
 
-      {/* Статистика */}
-      {stats && (
+      {/* Статистика - показываем только если API настроено */}
+      {isWBApiConfigured && stats && (
         <SimpleGrid columns={{ base: 1, sm: 2, md: 4 }} spacing={4} mb={6}>
           <Stat
             bg={statBg}
@@ -480,19 +479,20 @@ export default function OzonProductsPage() {
         </SimpleGrid>
       )}
 
-      {/* Панель поиска и фильтров */}
-      <Flex
-        direction={{ base: 'column', md: 'row' }}
-        justify="space-between"
-        align={{ base: 'stretch', md: 'center' }}
-        mb={6}
-        gap={4}
-        p={4}
-        bg={cardBg}
-        borderRadius="lg"
-        borderWidth="1px"
-        borderColor={borderColor}
-      >
+      {/* Панель поиска и фильтров - показываем только если API настроено */}
+      {isWBApiConfigured && (
+        <Flex
+          direction={{ base: 'column', md: 'row' }}
+          justify="space-between"
+          align={{ base: 'stretch', md: 'center' }}
+          mb={6}
+          gap={4}
+          p={4}
+          bg={cardBg}
+          borderRadius="lg"
+          borderWidth="1px"
+          borderColor={borderColor}
+        >
         <InputGroup maxW={{ base: '100%', md: '400px' }}>
           <InputLeftElement pointerEvents="none">
             <SearchIcon color="gray.300" />
@@ -528,7 +528,8 @@ export default function OzonProductsPage() {
             />
           </Tooltip>
         </HStack>
-      </Flex>
+        </Flex>
+      )}
 
       {/* Сообщение об ошибке */}
       {error && (
@@ -541,17 +542,19 @@ export default function OzonProductsPage() {
 
 
 
-      {/* Список товаров */}
-      {isLoading ? (
-        <Flex justify="center" align="center" height="300px">
-          <Spinner size="xl" color="blue.500" thickness="4px" />
-        </Flex>
-      ) : (
-        <ProductListSimple
-          onSelectProduct={handleSelectProduct}
-          onApplyStrategy={handleApplyStrategy}
-          onLinkCompetitors={handleLinkCompetitors}
-        />
+      {/* Список товаров - показываем только если API настроено */}
+      {isWBApiConfigured && (
+        isLoading ? (
+          <Flex justify="center" align="center" height="300px">
+            <Spinner size="xl" color="blue.500" thickness="4px" />
+          </Flex>
+        ) : (
+          <ProductListSimple
+            onSelectProduct={handleSelectProduct}
+            onApplyStrategy={handleApplyStrategy}
+            onLinkCompetitors={handleLinkCompetitors}
+          />
+        )
       )}
 
       {/* Ящик с фильтрами */}
@@ -721,12 +724,23 @@ export default function OzonProductsPage() {
                           currentPrice={selectedProduct.price.current}
                         />
                       ) : (
-                        <MockDataDisplay
-                          type="competitors"
-                          productTitle={selectedProduct.title}
-                          currentPrice={selectedProduct.price.current}
-                          onAction={() => handleLinkCompetitors(selectedProduct.id)}
-                        />
+                        <VStack spacing={4} align="stretch">
+                          <Alert status="info" borderRadius="md">
+                            <AlertIcon />
+                            <Box>
+                              <AlertTitle fontSize="sm">Конкуренты не найдены</AlertTitle>
+                              <AlertDescription fontSize="xs">
+                                Свяжите товар с конкурентами для отслеживания цен.
+                              </AlertDescription>
+                            </Box>
+                          </Alert>
+                          <Button
+                            colorScheme="blue"
+                            onClick={() => handleLinkCompetitors(selectedProduct.id)}
+                          >
+                            Связать с конкурентами
+                          </Button>
+                        </VStack>
                       )}
                     </TabPanel>
                     <TabPanel>
@@ -747,12 +761,23 @@ export default function OzonProductsPage() {
                             </Text>
                           </Box>
                         ) : (
-                          <MockDataDisplay
-                            type="strategy"
-                            productTitle={selectedProduct.title}
-                            currentPrice={selectedProduct.price.current}
-                            onAction={() => handleApplyStrategy(selectedProduct.id)}
-                          />
+                          <VStack spacing={4} align="stretch">
+                            <Alert status="warning" borderRadius="md">
+                              <AlertIcon />
+                              <Box>
+                                <AlertTitle fontSize="sm">Стратегия не применена</AlertTitle>
+                                <AlertDescription fontSize="xs">
+                                  Примените стратегию ценообразования для автоматического управления ценами.
+                                </AlertDescription>
+                              </Box>
+                            </Alert>
+                            <Button
+                              colorScheme="orange"
+                              onClick={() => handleApplyStrategy(selectedProduct.id)}
+                            >
+                              Применить стратегию
+                            </Button>
+                          </VStack>
                         )}
 
                         {selectedProduct.linkedCompetitors && selectedProduct.linkedCompetitors.length > 0 && (
